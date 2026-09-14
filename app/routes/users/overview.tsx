@@ -188,11 +188,15 @@ export async function loader({ request, context }: Route.LoaderArgs) {
 
 export const action = userAction;
 
+import { useTranslation } from "~/i18n/context";
+
 export default function Page({ loaderData }: Route.ComponentProps) {
+  const { t } = useTranslation();
+
   return (
     <>
-      <h1 className="mb-1.5 text-2xl font-medium">Users</h1>
-      <p className="text-md mb-8">Manage the users in your network and their permissions.</p>
+      <h1 className="mb-1.5 text-2xl font-medium">{t("users.title")}</h1>
+      <p className="text-md mb-8">{t("users.desc")}</p>
       <ManageBanner isDisabled={!loaderData.writable} oidc={loaderData.oidc} />
 
       {loaderData.apiError && (
@@ -208,22 +212,20 @@ export default function Page({ loaderData }: Route.ComponentProps) {
       )}
 
       <section>
-        <h2 className="mb-3 text-lg font-medium">Headplane Users</h2>
+        <h2 className="mb-3 text-lg font-medium">{t("users.headplaneUsers")}</h2>
         {loaderData.headplaneUsers.length === 0 ? (
-          <p className="text-sm text-mist-600 dark:text-mist-300">
-            No users have signed into Headplane yet.
-          </p>
+          <p className="text-sm text-mist-600 dark:text-mist-300">{t("users.noHeadplaneUsers")}</p>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full min-w-[640px] table-auto rounded-lg">
               <thead className="text-mist-600 dark:text-mist-300">
                 <tr className="px-0.5 text-left">
-                  <th className="pb-2 text-xs font-bold uppercase">User</th>
-                  <th className="pb-2 text-xs font-bold uppercase">Role</th>
-                  <th className="pb-2 text-xs font-bold uppercase">Last Login</th>
-                  <th className="pb-2 text-xs font-bold uppercase">Status</th>
+                  <th className="pb-2 text-xs font-bold uppercase">{t("common.user")}</th>
+                  <th className="pb-2 text-xs font-bold uppercase">{t("common.role")}</th>
+                  <th className="pb-2 text-xs font-bold uppercase">{t("common.lastLogin")}</th>
+                  <th className="pb-2 text-xs font-bold uppercase">{t("common.status")}</th>
                   <th className="w-12 pb-2">
-                    <span className="sr-only">Actions</span>
+                    <span className="sr-only">{t("common.actions")}</span>
                   </th>
                 </tr>
               </thead>
@@ -253,20 +255,17 @@ export default function Page({ loaderData }: Route.ComponentProps) {
 
       {!loaderData.apiError && loaderData.unlinkedHeadscaleUsers.length > 0 && (
         <section className="mt-10">
-          <h2 className="mb-1 text-lg font-medium">Unlinked Headscale Users</h2>
-          <p className="mb-3 text-sm text-mist-600 dark:text-mist-300">
-            These Headscale users are not linked to a Headplane account and cannot be managed
-            through Headplane.
-          </p>
+          <h2 className="mb-1 text-lg font-medium">{t("users.unlinkedUsers")}</h2>
+          <p className="mb-3 text-sm text-mist-600 dark:text-mist-300">{t("users.unlinkedDesc")}</p>
           <div className="overflow-x-auto">
             <table className="w-full min-w-[640px] table-auto rounded-lg">
               <thead className="text-mist-600 dark:text-mist-300">
                 <tr className="px-0.5 text-left">
-                  <th className="pb-2 text-xs font-bold uppercase">User</th>
-                  <th className="pb-2 text-xs font-bold uppercase">Created At</th>
-                  <th className="pb-2 text-xs font-bold uppercase">Status</th>
+                  <th className="pb-2 text-xs font-bold uppercase">{t("common.user")}</th>
+                  <th className="pb-2 text-xs font-bold uppercase">{t("common.createdAt")}</th>
+                  <th className="pb-2 text-xs font-bold uppercase">{t("common.status")}</th>
                   <th className="w-12 pb-2">
-                    <span className="sr-only">Actions</span>
+                    <span className="sr-only">{t("common.actions")}</span>
                   </th>
                 </tr>
               </thead>

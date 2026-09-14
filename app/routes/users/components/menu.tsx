@@ -2,6 +2,7 @@ import { Ellipsis } from "lucide-react";
 import { useState } from "react";
 
 import { Menu, MenuContent, MenuItem, MenuSeparator, MenuTrigger } from "~/components/menu";
+import { useTranslation } from "~/i18n/context";
 
 import Delete from "../dialogs/delete-user";
 import LinkUser from "../dialogs/link-user";
@@ -33,6 +34,7 @@ export default function UserMenu({
   policyGroups,
   policyHasComments,
 }: MenuProps) {
+  const { isZh } = useTranslation();
   const [modal, setModal] = useState<Modal>(null);
 
   const isLinked = currentLink !== undefined;
@@ -114,19 +116,27 @@ export default function UserMenu({
             disabled={disabledKeys.includes("reassign")}
             onClick={() => setModal("reassign")}
           >
-            Change role
+            {isZh ? "更改角色" : "Change role"}
           </MenuItem>
           <MenuItem onClick={() => setModal("link")}>
-            {isLinked ? "Change linked user" : "Link Headscale user"}
+            {isLinked
+              ? isZh
+                ? "更改关联用户"
+                : "Change linked user"
+              : isZh
+                ? "关联 Headscale 用户"
+                : "Link Headscale user"}
           </MenuItem>
           {canEditGroups && user.linkedHeadscaleUser && (
-            <MenuItem onClick={() => setModal("groups")}>Edit groups</MenuItem>
+            <MenuItem onClick={() => setModal("groups")}>
+              {isZh ? "编辑用户组" : "Edit groups"}
+            </MenuItem>
           )}
           {isOwner && !isSelf && (
             <>
               <MenuSeparator />
               <MenuItem variant="danger" onClick={() => setModal("transfer")}>
-                Transfer ownership
+                {isZh ? "转移所有权" : "Transfer ownership"}
               </MenuItem>
             </>
           )}
@@ -134,7 +144,7 @@ export default function UserMenu({
             <>
               <MenuSeparator />
               <MenuItem variant="danger" onClick={() => setModal("delete")}>
-                Delete
+                {isZh ? "删除" : "Delete"}
               </MenuItem>
             </>
           )}

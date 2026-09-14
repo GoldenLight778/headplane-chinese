@@ -345,20 +345,52 @@ async function removeDNS(config: HeadscaleConfigState, record: DNSRecord) {
   return true;
 }
 
+const DEV_MOCK_CONFIG = `
+dns:
+  magic_dns: true
+  base_domain: "example.ts.net"
+  nameservers:
+    global:
+      - "1.1.1.1"
+      - "8.8.8.8"
+    split:
+      "corp.internal":
+        - "10.0.0.1"
+  search_domains:
+    - "example.ts.net"
+  override_local_dns: true
+  extra_records: []
+`;
+
+function createDevMockConfig() {
+  log.info("config", "Using in-memory dev mock Headscale DNS configuration");
+  const doc = parseDocument(DEV_MOCK_CONFIG);
+  return createHeadscaleConfig("rw", undefined, doc);
+}
+
 export async function loadHeadscaleConfig(path?: string, dnsPath?: string) {
   if (!path) {
     log.debug("config", "No Headscale configuration file was provided");
+    if (process.env.NODE_ENV !== "production" || process.env.HEADPLANE_DEV_MOCK === "true") {
+      return createDevMockConfig();
+    }
     return createHeadscaleConfig("no");
   }
 
   log.debug("config", "Loading Headscale configuration file: %s", path);
   const { r, w } = await validateConfigPath(path);
   if (!r) {
+    if (process.env.NODE_ENV !== "production" || process.env.HEADPLANE_DEV_MOCK === "true") {
+      return createDevMockConfig();
+    }
     return createHeadscaleConfig("no");
   }
 
   const document = await loadConfigFile(path);
   if (!document) {
+    if (process.env.NODE_ENV !== "production" || process.env.HEADPLANE_DEV_MOCK === "true") {
+      return createDevMockConfig();
+    }
     return createHeadscaleConfig("no");
   }
 

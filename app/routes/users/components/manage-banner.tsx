@@ -1,6 +1,7 @@
 import { Building2, House } from "lucide-react";
 
 import Link from "~/components/link";
+import { useTranslation } from "~/i18n/context";
 import cn from "~/utils/cn";
 
 import CreateUser from "../dialogs/create-user";
@@ -11,6 +12,8 @@ interface ManageBannerProps {
 }
 
 export default function ManageBanner({ oidc, isDisabled }: ManageBannerProps) {
+  const { isZh } = useTranslation();
+
   return (
     <div
       className={cn(
@@ -22,12 +25,29 @@ export default function ManageBanner({ oidc, isDisabled }: ManageBannerProps) {
         {oidc ? <Building2 className="h-5 w-5 shrink-0" /> : <House className="h-5 w-5 shrink-0" />}
         <p className="text-sm text-mist-600 dark:text-mist-300">
           {oidc ? (
+            isZh ? (
+              <>
+                用户通过您的{" "}
+                <Link external styled to={oidc.issuer}>
+                  OIDC 身份提供商
+                </Link>{" "}
+                进行管理。
+              </>
+            ) : (
+              <>
+                Users are managed through your{" "}
+                <Link external styled to={oidc.issuer}>
+                  OIDC provider
+                </Link>
+                .
+              </>
+            )
+          ) : isZh ? (
             <>
-              Users are managed through your{" "}
-              <Link external styled to={oidc.issuer}>
-                OIDC provider
+              用户在本地进行管理。{" "}
+              <Link styled to="https://headscale.net/stable/ref/oidc">
+                配置 OIDC
               </Link>
-              .
             </>
           ) : (
             <>

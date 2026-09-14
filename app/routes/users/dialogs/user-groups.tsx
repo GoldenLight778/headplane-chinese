@@ -6,6 +6,7 @@ import Link from "~/components/link";
 import Text from "~/components/text";
 import Title from "~/components/title";
 import TokenList from "~/components/token-list";
+import { useTranslation } from "~/i18n/context";
 import { isValidGroupName } from "~/utils/acl-policy";
 
 interface UserGroupsProps {
@@ -29,6 +30,7 @@ export default function UserGroups({
   availableGroups,
   policyHasComments,
 }: UserGroupsProps) {
+  const { isZh } = useTranslation();
   const fetcher = useFetcher<{ message?: string; error?: string }>();
   const submittingRef = useRef(false);
   const [selected, setSelected] = useState([...groups]);
@@ -63,6 +65,7 @@ export default function UserGroups({
     >
       <DialogPanel
         isDisabled={isSubmitting}
+        confirmText={isZh ? "保存用户组" : "Save groups"}
         onSubmit={(event) => {
           event.preventDefault();
           submittingRef.current = true;
@@ -73,18 +76,35 @@ export default function UserGroups({
           fetcher.submit(form, { method: "POST" });
         }}
       >
-        <Title>Edit ACL groups for {displayName}</Title>
+        <Title>
+          {isZh ? `编辑 ${displayName} 的 ACL 用户组` : `Edit ACL groups for ${displayName}`}
+        </Title>
         <Text>
-          Groups live in the ACL policy, not in Headscale. Changing them here rewrites the{" "}
-          <code className="font-mono">groups</code> section of your policy. See the{" "}
-          <Link external styled to="https://tailscale.com/kb/1018/acls">
-            Tailscale ACL guide
-          </Link>{" "}
-          for details.
+          {isZh ? (
+            <>
+              用户组保存在 ACL 策略中，而不是 Headscale 中。在此修改将重写策略中的{" "}
+              <code className="font-mono">groups</code> 部分。详情请参阅{" "}
+              <Link external styled to="https://tailscale.com/kb/1018/acls">
+                Tailscale ACL 指南
+              </Link>
+              。
+            </>
+          ) : (
+            <>
+              Groups live in the ACL policy, not in Headscale. Changing them here rewrites the{" "}
+              <code className="font-mono">groups</code> section of your policy. See the{" "}
+              <Link external styled to="https://tailscale.com/kb/1018/acls">
+                Tailscale ACL guide
+              </Link>{" "}
+              for details.
+            </>
+          )}
         </Text>
         {policyHasComments ? (
           <p className="mt-2 rounded-lg bg-amber-50 p-3 text-sm text-amber-800 dark:bg-amber-900/20 dark:text-amber-300">
-            Your policy contains comments. Saving here rewrites the policy and drops them.
+            {isZh
+              ? "您的策略包含注释。在此保存将重写策略并清除注释。"
+              : "Your policy contains comments. Saving here rewrites the policy and drops them."}
           </p>
         ) : null}
         {error ? (
@@ -93,9 +113,9 @@ export default function UserGroups({
           </p>
         ) : null}
         <TokenList
-          emptyText="This user is not in any group"
+          emptyText={isZh ? "此用户不属于任何用户组" : "This user is not in any group"}
           isDisabled={isSubmitting}
-          label="Groups"
+          label={isZh ? "用户组" : "Groups"}
           onChange={setSelected}
           placeholder="group:example"
           suggestions={availableGroups}

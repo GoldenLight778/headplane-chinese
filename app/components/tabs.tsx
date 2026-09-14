@@ -51,8 +51,10 @@ function Tab({
       value={value}
       {...props}
       className={cn(
-        "pl-2 pr-3 py-2.5",
-        "data-[selected]:bg-mist-50 dark:data-[selected]:bg-mist-950",
+        "pl-3 pr-4 py-2.5 text-sm font-medium cursor-pointer select-none",
+        "transition-all duration-150 ease-out active:scale-[0.98]",
+        "hover:bg-mist-100/60 dark:hover:bg-mist-900/60",
+        "data-[selected]:bg-mist-50 dark:data-[selected]:bg-mist-950 data-[selected]:font-semibold",
         "focus:outline-hidden focus:ring-2 focus:ring-indigo-500/40 focus:ring-offset-1 z-10",
         "dark:focus:ring-indigo-400/40 dark:focus:ring-offset-mist-900",
         "border-r border-mist-200 dark:border-mist-800",

@@ -2,6 +2,7 @@ import { Ellipsis } from "lucide-react";
 import { useState } from "react";
 
 import { Menu, MenuContent, MenuItem, MenuSeparator, MenuTrigger } from "~/components/menu";
+import { useTranslation } from "~/i18n/context";
 
 import Delete from "../dialogs/delete-user";
 import Rename from "../dialogs/rename-user";
@@ -23,6 +24,7 @@ export default function HeadscaleUserMenu({
   policyGroups,
   policyHasComments,
 }: HeadscaleUserMenuProps) {
+  const { isZh } = useTranslation();
   const [modal, setModal] = useState<Modal>(null);
 
   // Headscale-managed OIDC users cannot be renamed via the API.
@@ -68,11 +70,17 @@ export default function HeadscaleUserMenu({
           <Ellipsis className="h-5" />
         </MenuTrigger>
         <MenuContent>
-          {canRename && <MenuItem onClick={() => setModal("rename")}>Rename</MenuItem>}
-          {canEditGroups && <MenuItem onClick={() => setModal("groups")}>Edit groups</MenuItem>}
+          {canRename && (
+            <MenuItem onClick={() => setModal("rename")}>{isZh ? "重命名" : "Rename"}</MenuItem>
+          )}
+          {canEditGroups && (
+            <MenuItem onClick={() => setModal("groups")}>
+              {isZh ? "编辑用户组" : "Edit groups"}
+            </MenuItem>
+          )}
           {(canRename || canEditGroups) && <MenuSeparator />}
           <MenuItem variant="danger" onClick={() => setModal("delete")}>
-            Delete
+            {isZh ? "删除" : "Delete"}
           </MenuItem>
         </MenuContent>
       </Menu>

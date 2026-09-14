@@ -2,6 +2,7 @@ import Dialog, { DialogPanel } from "~/components/dialog";
 import Notice from "~/components/notice";
 import Text from "~/components/text";
 import Title from "~/components/title";
+import { useTranslation } from "~/i18n/context";
 import cn from "~/utils/cn";
 
 interface LinkUserProps {
@@ -21,16 +22,25 @@ export default function LinkUser({
   isOpen,
   setIsOpen,
 }: LinkUserProps) {
+  const { isZh } = useTranslation();
+
   return (
     <Dialog isOpen={isOpen} onOpenChange={setIsOpen}>
-      <DialogPanel>
-        <Title>Link Headscale user for {displayName}</Title>
+      <DialogPanel confirmText={isZh ? "确认关联" : "Link user"}>
+        <Title>
+          {isZh ? `关联 Headscale 用户: ${displayName}` : `Link Headscale user for ${displayName}`}
+        </Title>
         <Text className="mb-6">
-          Select which Headscale user this identity should be linked to. This controls which
-          machines they can manage and enables self-service features.
+          {isZh
+            ? "选择此身份应关联的 Headscale 用户。这控制了他们可以管理哪些机器，并启用自助服务功能。"
+            : "Select which Headscale user this identity should be linked to. This controls which machines they can manage and enables self-service features."}
         </Text>
         {headscaleUsers.length === 0 ? (
-          <Notice>All Headscale users are already linked to other accounts.</Notice>
+          <Notice>
+            {isZh
+              ? "所有 Headscale 用户均已关联到其他账户。"
+              : "All Headscale users are already linked to other accounts."}
+          </Notice>
         ) : (
           <>
             <input name="action_id" type="hidden" value="link_user" />
@@ -45,11 +55,13 @@ export default function LinkUser({
               name="headscale_user_id"
               required
             >
-              <option value="">Select a Headscale user...</option>
+              <option value="">
+                {isZh ? "选择 Headscale 用户..." : "Select a Headscale user..."}
+              </option>
               {headscaleUsers.map((u) => (
                 <option key={u.id} value={u.id}>
                   {u.name}
-                  {u.id === currentLink ? " (current)" : ""}
+                  {u.id === currentLink ? (isZh ? " (当前)" : " (current)") : ""}
                 </option>
               ))}
             </select>

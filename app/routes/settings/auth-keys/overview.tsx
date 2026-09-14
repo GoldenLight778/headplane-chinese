@@ -6,6 +6,7 @@ import Link from "~/components/link";
 import Notice from "~/components/notice";
 import Select from "~/components/select";
 import TableList from "~/components/table-list";
+import { useTranslation } from "~/i18n/context";
 import {
   appConfigContext,
   authContext,
@@ -127,6 +128,7 @@ export default function Page({
     currentSubject,
   },
 }: Route.ComponentProps) {
+  const { isZh } = useTranslation();
   const [selectedUser, setSelectedUser] = useState("__headplane_all");
   const [status, setStatus] = useState<Status>("active");
   const isDisabled = !access || keys.flatMap(({ preAuthKeys }) => preAuthKeys).length === 0;
@@ -191,34 +193,57 @@ export default function Page({
     <div className="flex flex-col md:w-2/3">
       <p className="text-md mb-8">
         <Link className="font-medium" to="/settings">
-          Settings
+          {isZh ? "设置" : "Settings"}
         </Link>
-        <span className="mx-2">/</span> Pre-Auth Keys
+        <span className="mx-2">/</span> {isZh ? "预授权密钥" : "Pre-Auth Keys"}
       </p>
       {!access ? (
-        <Notice title="Pre-auth key permissions restricted" variant="warning">
-          You do not have the necessary permissions to generate pre-auth keys. Please contact your
-          administrator to request access or to generate a pre-auth key for you.
+        <Notice
+          title={isZh ? "预授权密钥权限受限" : "Pre-auth key permissions restricted"}
+          variant="warning"
+        >
+          {isZh
+            ? "您没有生成预授权密钥所需的权限。请联系管理员申请访问权限或代为生成密钥。"
+            : "You do not have the necessary permissions to generate pre-auth keys. Please contact your administrator to request access or to generate a pre-auth key for you."}
         </Notice>
       ) : missing.length > 0 ? (
-        <Notice title="Missing authentication keys" variant="error">
-          An error occurred while fetching the authentication keys for the following users:{" "}
+        <Notice
+          title={isZh ? "获取部分用户的密钥失败" : "Missing authentication keys"}
+          variant="error"
+        >
+          {isZh
+            ? "获取以下用户的认证密钥时发生错误："
+            : "An error occurred while fetching the authentication keys for the following users: "}{" "}
           {missing.map(({ user }, index) => (
-            <>
-              <Code key={user.id}>{getUserDisplayName(user)}</Code>
+            <span key={user.id}>
+              <Code>{getUserDisplayName(user)}</Code>
               {index < missing.length - 1 ? ", " : ". "}
-            </>
+            </span>
           ))}
-          Their keys may not be listed correctly. Please check the server logs for more information.
+          {isZh
+            ? "其密钥可能无法完整列出，请检查服务器日志获取详细信息。"
+            : "Their keys may not be listed correctly. Please check the server logs for more information."}
         </Notice>
       ) : undefined}
-      <h1 className="mb-2 text-2xl font-medium">Pre-Auth Keys</h1>
+      <h1 className="mb-2 text-2xl font-medium">{isZh ? "预授权密钥" : "Pre-Auth Keys"}</h1>
       <p className="mb-4">
-        Headscale fully supports pre-authentication keys in order to easily add devices to your
-        Tailnet. To learn more about using pre-authentication keys, visit the{" "}
-        <Link external styled to="https://tailscale.com/kb/1085/auth-keys/">
-          Tailscale documentation
-        </Link>
+        {isZh ? (
+          <>
+            Headscale 完全支持预授权密钥以便快捷自动地将新设备加入您的 Tailnet。访问{" "}
+            <Link external styled to="https://tailscale.com/kb/1085/auth-keys/">
+              Tailscale 官方文档
+            </Link>{" "}
+            了解更多关于预授权密钥的使用说明。
+          </>
+        ) : (
+          <>
+            Headscale fully supports pre-authentication keys in order to easily add devices to your
+            Tailnet. To learn more about using pre-authentication keys, visit the{" "}
+            <Link external styled to="https://tailscale.com/kb/1085/auth-keys/">
+              Tailscale documentation
+            </Link>
+          </>
+        )}
       </p>
       <AddAuthKey
         currentHeadscaleUserId={currentHeadscaleUserId}
@@ -232,16 +257,16 @@ export default function Page({
           className="w-full"
           defaultValue="__headplane_all"
           disabled={isDisabled}
-          label="User"
+          label={isZh ? "用户" : "User"}
           onValueChange={(value) => setSelectedUser(value ?? "")}
-          placeholder="Select a user"
+          placeholder={isZh ? "选择用户" : "Select a user"}
           items={[
-            { value: "__headplane_all", label: "All" },
+            { value: "__headplane_all", label: isZh ? "全部用户" : "All" },
             ...keys
               .filter((k): k is { user: User; preAuthKeys: PreAuthKey[] } => k.user !== null)
               .map(({ user }) => ({ value: user.id, label: getUserDisplayName(user) })),
             ...(keys.some(({ user }) => user === null)
-              ? [{ value: "__headplane_tag_only", label: "Tag Only" }]
+              ? [{ value: "__headplane_tag_only", label: isZh ? "仅标签" : "Tag Only" }]
               : []),
           ]}
         />
@@ -249,15 +274,15 @@ export default function Page({
           className="w-full"
           defaultValue="active"
           disabled={isDisabled}
-          label="Status"
+          label={isZh ? "状态" : "Status"}
           onValueChange={(value) => setStatus((value ?? "active") as Status)}
-          placeholder="Select a status"
+          placeholder={isZh ? "选择状态" : "Select a status"}
           items={[
-            { value: "all", label: "All" },
-            { value: "active", label: "Active" },
-            { value: "expired", label: "Used/Expired" },
-            { value: "reusable", label: "Reusable" },
-            { value: "ephemeral", label: "Ephemeral" },
+            { value: "all", label: isZh ? "全部状态" : "All" },
+            { value: "active", label: isZh ? "有效/活跃" : "Active" },
+            { value: "expired", label: isZh ? "已使用/已失效" : "Used/Expired" },
+            { value: "reusable", label: isZh ? "可复用" : "Reusable" },
+            { value: "ephemeral", label: isZh ? "临时节点" : "Ephemeral" },
           ]}
         />
       </div>
@@ -265,12 +290,18 @@ export default function Page({
         {keys.flatMap(({ preAuthKeys }) => preAuthKeys).length === 0 ? (
           <TableList.Item className="flex flex-col items-center gap-2.5 py-4 opacity-70">
             <FileKey2 />
-            <p className="font-semibold">No pre-auth keys have been created yet.</p>
+            <p className="font-semibold">
+              {isZh ? "尚未创建任何预授权密钥。" : "No pre-auth keys have been created yet."}
+            </p>
           </TableList.Item>
         ) : filteredKeys.length === 0 ? (
           <TableList.Item className="flex flex-col items-center gap-2.5 py-4 opacity-70">
             <FileKey2 />
-            <p className="font-semibold">No pre-auth keys match the selected filters.</p>
+            <p className="font-semibold">
+              {isZh
+                ? "没有匹配选定筛选条件的预授权密钥。"
+                : "No pre-auth keys match the selected filters."}
+            </p>
           </TableList.Item>
         ) : (
           filteredKeys.map((key) => {

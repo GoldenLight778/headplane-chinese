@@ -29,6 +29,8 @@ interface MenuProps {
 
 type Modal = "rename" | "expire" | "remove" | "routes" | "move" | "tags" | null;
 
+import { useTranslation } from "~/i18n/context";
+
 export default function MachineMenu({
   node,
   magic,
@@ -40,6 +42,7 @@ export default function MachineMenu({
   supportsNodeOwnerChange,
   supportsDisablingKeyExpiry,
 }: MenuProps) {
+  const { t } = useTranslation();
   const submit = useSubmit();
   const [modal, setModal] = useState<Modal>(null);
   const supportsTailscaleSSH = node.hostInfo?.sshHostKeys && node.hostInfo?.sshHostKeys.length > 0;
@@ -122,7 +125,7 @@ export default function MachineMenu({
             variant="heavy"
           >
             <SquareTerminal className="h-5" />
-            <p>SSH</p>
+            <p>{t("machines.menu.ssh")}</p>
           </Button>
         ) : (
           <Button
@@ -140,7 +143,7 @@ export default function MachineMenu({
               );
             }}
           >
-            SSH
+            {t("machines.menu.ssh")}
           </Button>
         )
       ) : undefined}
@@ -148,21 +151,21 @@ export default function MachineMenu({
         <MenuTrigger
           className={
             isFullButton
-              ? "gap-x-2 rounded-md border border-mist-200 bg-white px-3.5 py-2 text-sm font-medium hover:bg-mist-50 dark:border-mist-700 dark:bg-mist-800/50 dark:hover:bg-mist-700/50"
-              : "w-10 rounded-full bg-transparent p-1 hover:bg-mist-100 dark:hover:bg-mist-800"
+              ? "cursor-pointer gap-x-2 rounded-md border border-mist-200 bg-white px-3.5 py-2 text-sm font-medium shadow-xs transition-all duration-150 ease-out select-none hover:border-mist-300 hover:bg-mist-50/90 active:scale-[0.97] active:bg-mist-100 dark:border-mist-700 dark:bg-mist-800/60 dark:hover:bg-mist-700/60 dark:active:bg-mist-700/90"
+              : "w-10 cursor-pointer rounded-full bg-transparent p-1 transition-all duration-150 ease-out hover:bg-mist-200/60 active:scale-90 dark:hover:bg-mist-800"
           }
         >
           {isFullButton ? (
             <>
               <Cog className="h-5" />
-              <p>Machine Settings</p>
+              <p>{t("machines.menu.settings")}</p>
             </>
           ) : (
             <Ellipsis className="h-5" />
           )}
         </MenuTrigger>
         <MenuContent>
-          <MenuItem onClick={() => setModal("rename")}>Edit machine name</MenuItem>
+          <MenuItem onClick={() => setModal("rename")}>{t("machines.menu.rename")}</MenuItem>
           {supportsDisablingKeyExpiry && (
             <MenuItem
               onClick={() =>
@@ -176,22 +179,24 @@ export default function MachineMenu({
                 )
               }
             >
-              {isNoExpiry(node.expiry) ? "Enable" : "Disable"} key expiry
+              {isNoExpiry(node.expiry)
+                ? t("machines.menu.enableExpiry")
+                : t("machines.menu.disableExpiry")}
             </MenuItem>
           )}
-          <MenuItem onClick={() => setModal("routes")}>Edit route settings</MenuItem>
-          <MenuItem onClick={() => setModal("tags")}>Edit ACL tags</MenuItem>
+          <MenuItem onClick={() => setModal("routes")}>{t("machines.menu.routes")}</MenuItem>
+          <MenuItem onClick={() => setModal("tags")}>{t("machines.menu.tags")}</MenuItem>
           {supportsNodeOwnerChange && (
-            <MenuItem onClick={() => setModal("move")}>Change owner</MenuItem>
+            <MenuItem onClick={() => setModal("move")}>{t("machines.menu.changeOwner")}</MenuItem>
           )}
           <MenuSeparator />
           {!isNoExpiry(node.expiry) && (
             <MenuItem variant="danger" disabled={node.expired} onClick={() => setModal("expire")}>
-              Expire
+              {t("machines.menu.expire")}
             </MenuItem>
           )}
           <MenuItem variant="danger" onClick={() => setModal("remove")}>
-            Remove
+            {t("machines.menu.remove")}
           </MenuItem>
         </MenuContent>
       </Menu>

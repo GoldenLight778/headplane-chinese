@@ -8,6 +8,7 @@ import Select from "~/components/select";
 import Text from "~/components/text";
 import Title from "~/components/title";
 import { useForm } from "~/hooks/use-form";
+import { useTranslation } from "~/i18n/context";
 
 const recordSchema = type({
   record_type: "'A' | 'AAAA'",
@@ -20,6 +21,7 @@ interface Props {
 }
 
 export default function AddRecord({ records }: Props) {
+  const { isZh } = useTranslation();
   const form = useForm({
     schema: recordSchema,
     defaultValues: { record_type: "A" },
@@ -31,8 +33,8 @@ export default function AddRecord({ records }: Props) {
       const lookup = records.find((r) => r.name === name);
       if (lookup?.value === ip) {
         return {
-          record_name: "This record already exists.",
-          record_value: "This record already exists.",
+          record_name: isZh ? "该记录已存在。" : "This record already exists.",
+          record_value: isZh ? "该记录已存在。" : "This record already exists.",
         };
       }
 
@@ -48,15 +50,19 @@ export default function AddRecord({ records }: Props) {
 
   return (
     <Dialog>
-      <Button>Add DNS record</Button>
-      <DialogPanel onSubmit={() => form.reset()}>
-        <Title>Add DNS record</Title>
-        <Text>Enter the domain and IP address for the new DNS record.</Text>
+      <Button>{isZh ? "添加 DNS 记录" : "Add DNS record"}</Button>
+      <DialogPanel onSubmit={() => form.reset()} confirmText={isZh ? "添加记录" : "Add DNS record"}>
+        <Title>{isZh ? "添加 DNS 记录" : "Add DNS record"}</Title>
+        <Text>
+          {isZh
+            ? "为新的 DNS 记录输入域名和 IP 地址。"
+            : "Enter the domain and IP address for the new DNS record."}
+        </Text>
         <div className="mt-4 flex flex-col gap-2">
           <input type="hidden" name="action_id" value="add_record" />
           <Select
             required
-            label="Record Type"
+            label={isZh ? "记录类型" : "Record Type"}
             name="record_type"
             defaultValue={recordType}
             onValueChange={(v) => {
@@ -70,19 +76,27 @@ export default function AddRecord({ records }: Props) {
           <Input
             {...form.field("record_name")}
             required
-            label="Domain"
+            label={isZh ? "域名" : "Domain"}
             placeholder="test.example.com"
           />
           <Input
             {...form.field("record_value")}
             required
-            label="IP Address"
+            label={isZh ? "IP 地址" : "IP Address"}
             placeholder={recordType === "AAAA" ? "2001:db8::ff00:42:8329" : "101.101.101.101"}
           />
           {isDuplicate ? (
             <p className="text-sm opacity-50">
-              A record with the domain name <Code>{name}</Code> and IP address <Code>{ip}</Code>{" "}
-              already exists.
+              {isZh ? (
+                <>
+                  已存在域名为 <Code>{name}</Code> 且 IP 为 <Code>{ip}</Code> 的记录。
+                </>
+              ) : (
+                <>
+                  A record with the domain name <Code>{name}</Code> and IP address <Code>{ip}</Code>{" "}
+                  already exists.
+                </>
+              )}
             </p>
           ) : undefined}
         </div>

@@ -116,7 +116,11 @@ export async function loader({ request, context }: Route.LoaderArgs) {
   }
 }
 
+import { useTranslation } from "~/i18n/context";
+
 export default function AppLayout({ loaderData }: Route.ComponentProps) {
+  const { isZh } = useTranslation();
+
   return (
     <>
       <Header
@@ -129,11 +133,12 @@ export default function AppLayout({ loaderData }: Route.ComponentProps) {
           <StatusBanner
             className="mb-4"
             dismissable={false}
-            title="Headscale Unreachable"
+            title={isZh ? "无法连接到 Headscale" : "Headscale Unreachable"}
             variant="critical"
           >
-            Unable to connect to the Headscale server. Data shown may be stale and changes cannot be
-            saved until the connection is restored.
+            {isZh
+              ? "无法连接到 Headscale 服务器。当前显示的数据可能不是最新的，在连接恢复之前所做的更改将无法保存。"
+              : "Unable to connect to the Headscale server. Data shown may be stale and changes cannot be saved until the connection is restored."}
           </StatusBanner>
         )}
         <Outlet />

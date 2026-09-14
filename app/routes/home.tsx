@@ -132,7 +132,11 @@ const downloads = [
   },
 ];
 
+import { useTranslation } from "~/i18n/context";
+
 export default function Home({ loaderData }: Route.ComponentProps) {
+  const { t } = useTranslation();
+
   if (loaderData.status === "needs_link") {
     return <LinkAccount headscaleUsers={loaderData.headscaleUsers} />;
   }
@@ -141,18 +145,15 @@ export default function Home({ loaderData }: Route.ComponentProps) {
     <div className="mx-auto mt-6 mb-24 flex max-w-2xl flex-col gap-4">
       {loaderData.linkedUserName && (
         <Card variant="flat" className="flex max-w-2xl items-center gap-4">
-          <Check className="inline-flex size-4" />
+          <Check className="inline-flex size-4 text-emerald-600 dark:text-emerald-400" />
           <Card.Text className="text-sm">
-            Your account is linked to Headscale user <strong>{loaderData.linkedUserName}</strong>.
+            {t("home.linkedNotice")} <strong>{loaderData.linkedUserName}</strong>.
           </Card.Text>
         </Card>
       )}
       <Card variant="flat" className="max-w-2xl">
-        <Card.Title>Access your network via Tailscale</Card.Title>
-        <Card.Text className="mt-1">
-          You've successfully authenticated but don't have access to the dashboard. You can still
-          connect to your Headscale network by installing Tailscale.
-        </Card.Text>
+        <Card.Title>{t("home.title")}</Card.Title>
+        <Card.Text className="mt-1">{t("home.description")}</Card.Text>
 
         <div className="mt-4 rounded-lg border border-mist-200 p-3 dark:border-mist-700">
           <div className="flex items-center gap-2">
@@ -166,7 +167,7 @@ export default function Home({ loaderData }: Route.ComponentProps) {
               styled
               to="https://github.com/tailscale/tailscale/blob/main/scripts/installer.sh"
             >
-              View script source
+              {t("home.viewSource")}
             </Link>
           </p>
         </div>
@@ -176,12 +177,12 @@ export default function Home({ loaderData }: Route.ComponentProps) {
             <a
               key={dl.name}
               className={cn(
-                "flex flex-col items-center gap-2 rounded-lg p-3",
+                "flex flex-col items-center gap-2 rounded-lg p-3 cursor-pointer",
                 "border border-mist-200 dark:border-mist-700",
-                "hover:bg-mist-100 dark:hover:bg-mist-800",
+                "hover:bg-mist-100/80 dark:hover:bg-mist-800/80 hover:shadow-xs",
                 "focus:outline-hidden focus:ring-2 focus:ring-indigo-500/40 focus:ring-offset-1",
                 "dark:focus:ring-indigo-400/40 dark:focus:ring-offset-mist-900",
-                "transition-colors",
+                "transition-all duration-150 ease-out hover:scale-[1.02] active:scale-[0.97] active:duration-75",
               )}
               href={dl.href}
               rel="noreferrer"
@@ -201,9 +202,7 @@ export default function Home({ loaderData }: Route.ComponentProps) {
               : "text-mist-600 dark:text-mist-300",
           )}
         >
-          {loaderData.unlinked
-            ? "Your account isn't linked to a Headscale user. Ask your administrator to create one for you."
-            : "Need access to the dashboard? Contact your administrator to request access."}
+          {loaderData.unlinked ? t("home.unlinkedWarning") : t("home.needAccess")}
         </Card.Text>
       </Card>
     </div>

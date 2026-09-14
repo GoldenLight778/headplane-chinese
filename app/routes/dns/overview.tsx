@@ -48,8 +48,11 @@ export async function action(data: ActionFunctionArgs) {
   return dnsAction(data);
 }
 
+import { useTranslation } from "~/i18n/context";
+
 export default function Page() {
   const data = useLoaderData<typeof loader>();
+  const { t, isZh } = useTranslation();
 
   const allNs: Record<string, string[]> = {};
   for (const key of Object.keys(data.splitDns)) {
@@ -63,12 +66,16 @@ export default function Page() {
     <div className="flex max-w-(--breakpoint-lg) flex-col gap-16">
       {data.writable ? undefined : (
         <Notice>
-          The Headscale configuration is read-only. You cannot make changes to the configuration
+          {isZh
+            ? "Headscale 配置为只读模式，无法通过界面修改配置。"
+            : "The Headscale configuration is read-only. You cannot make changes to the configuration"}
         </Notice>
       )}
       {data.access ? undefined : (
         <Notice>
-          Your permissions do not allow you to modify the DNS settings for this tailnet.
+          {isZh
+            ? "您的权限不允许修改当前 Tailnet 的 DNS 设置。"
+            : "Your permissions do not allow you to modify the DNS settings for this tailnet."}
         </Notice>
       )}
       <RenameTailnet isDisabled={isDisabled} name={data.baseDomain} />
@@ -81,15 +88,28 @@ export default function Page() {
       />
 
       <div className="flex w-full flex-col sm:w-2/3">
-        <h1 className="mb-4 text-2xl font-medium">Magic DNS</h1>
+        <h1 className="mb-4 text-2xl font-medium">{t("dns.magicDns")}</h1>
         <p className="mb-4">
-          Automatically register domain names for each device on the tailnet. Devices will be
-          accessible at{" "}
-          <Code>
-            [device].
-            {data.baseDomain}
-          </Code>{" "}
-          when Magic DNS is enabled.
+          {isZh ? (
+            <>
+              为连接至 Tailnet 的每台设备自动注册域名解析。启用 Magic DNS 后，设备将可以通过{" "}
+              <Code>
+                [device].
+                {data.baseDomain}
+              </Code>{" "}
+              进行访问。
+            </>
+          ) : (
+            <>
+              Automatically register domain names for each device on the tailnet. Devices will be
+              accessible at{" "}
+              <Code>
+                [device].
+                {data.baseDomain}
+              </Code>{" "}
+              when Magic DNS is enabled.
+            </>
+          )}
         </p>
         <ToggleMagic isDisabled={isDisabled} isEnabled={data.magicDns} />
       </div>

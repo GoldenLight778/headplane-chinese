@@ -14,6 +14,7 @@ import { Form } from "react-router";
 import Button from "~/components/button";
 import Input from "~/components/input";
 import TableList from "~/components/table-list";
+import { useTranslation } from "~/i18n/context";
 import cn from "~/utils/cn";
 
 interface Props {
@@ -23,6 +24,7 @@ interface Props {
 }
 
 export default function ManageDomains({ searchDomains, isDisabled, magic }: Props) {
+  const { isZh } = useTranslation();
   const [activeId, setActiveId] = useState<number | string | null>(null);
   const [localDomains, setLocalDomains] = useState(searchDomains);
 
@@ -32,10 +34,13 @@ export default function ManageDomains({ searchDomains, isDisabled, magic }: Prop
 
   return (
     <div className="flex w-full flex-col sm:w-2/3">
-      <h1 className="mb-4 text-2xl font-medium">Search Domains</h1>
+      <h1 className="mb-4 text-2xl font-medium">
+        {isZh ? "搜索域 (Search Domains)" : "Search Domains"}
+      </h1>
       <p className="mb-4">
-        Set custom DNS search domains for your Tailnet. When using Magic DNS, your tailnet domain is
-        used as the first search domain.
+        {isZh
+          ? "为您的 Tailnet 设置自定义 DNS 搜索域。使用 Magic DNS 时，您的 Tailnet 域名将作为首选搜索域。"
+          : "Set custom DNS search domains for your Tailnet. When using Magic DNS, your tailnet domain is used as the first search domain."}
       </p>
       <DndContext
         collisionDetection={closestCorners}
@@ -81,7 +86,7 @@ export default function ManageDomains({ searchDomains, isDisabled, magic }: Prop
           ) : undefined}
           <SortableContext items={localDomains} strategy={verticalListSortingStrategy}>
             {localDomains.map((sd, index) => (
-              <Domain domain={sd} id={index + 1} isDisabled={isDisabled} key={sd} />
+              <Domain domain={sd} id={index + 1} isDisabled={isDisabled} isZh={isZh} key={sd} />
             ))}
             <DragOverlay adjustScale>
               {activeId ? (
@@ -89,6 +94,7 @@ export default function ManageDomains({ searchDomains, isDisabled, magic }: Prop
                   domain={localDomains[(activeId as number) - 1]}
                   id={(activeId as number) - 1}
                   isDisabled={isDisabled}
+                  isZh={isZh}
                   isDragging
                 />
               ) : undefined}
@@ -104,17 +110,17 @@ export default function ManageDomains({ searchDomains, isDisabled, magic }: Prop
                     "rounded-none focus:ring-0 w-full ml-1",
                   )}
                   required
-                  label="Search Domain"
+                  label={isZh ? "搜索域" : "Search Domain"}
                   labelHidden
                   name="domain"
-                  placeholder="Search Domain"
+                  placeholder={isZh ? "搜索域" : "Search Domain"}
                   type="text"
                 />
                 <Button
                   className={cn("px-2 py-1 rounded-md", "text-blue-500 dark:text-blue-400")}
                   type="submit"
                 >
-                  Add
+                  {isZh ? "添加" : "Add"}
                 </Button>
               </Form>
             </TableList.Item>
@@ -130,9 +136,10 @@ interface DomainProps {
   id: number;
   isDragging?: boolean;
   isDisabled: boolean;
+  isZh: boolean;
 }
 
-function Domain({ domain, id, isDragging, isDisabled }: DomainProps) {
+function Domain({ domain, id, isDragging, isDisabled, isZh }: DomainProps) {
   const {
     attributes,
     listeners,
@@ -173,7 +180,7 @@ function Domain({ domain, id, isDragging, isDisabled }: DomainProps) {
             disabled={isDisabled}
             type="submit"
           >
-            Remove
+            {isZh ? "移除" : "Remove"}
           </Button>
         </Form>
       )}

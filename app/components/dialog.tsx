@@ -43,27 +43,43 @@ function Dialog(props: DialogProps) {
   );
 }
 
+import { useTranslation } from "~/i18n/context";
+
 export interface DialogPanelProps {
   children: React.ReactNode;
   variant?: "normal" | "destructive" | "unactionable";
   onSubmit?: React.FormEventHandler<HTMLFormElement>;
   method?: HTMLFormMethod;
   isDisabled?: boolean;
+  confirmText?: string;
+  cancelText?: string;
+  closeText?: string;
 }
 
 function Panel(props: DialogPanelProps) {
-  const { children, onSubmit, isDisabled, variant, method = "POST" } = props;
+  const {
+    children,
+    onSubmit,
+    isDisabled,
+    variant,
+    method = "POST",
+    confirmText,
+    cancelText,
+    closeText,
+  } = props;
   const closeRef = useRef<HTMLButtonElement>(null);
+  const { t } = useTranslation();
 
   return (
     <AlertDialog.Popup
       className={cn(
-        "flex w-full max-w-lg flex-col rounded-xl p-4",
+        "flex w-full max-w-lg flex-col rounded-xl p-5",
         "max-h-[90dvh]",
         "outline-hidden",
         "bg-white dark:bg-mist-900",
         "border border-mist-200 dark:border-mist-800",
         "shadow-overlay",
+        "transition-all duration-200 ease-out",
       )}
     >
       <Form
@@ -85,19 +101,19 @@ function Panel(props: DialogPanelProps) {
         <div className="-mx-1 flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto px-1">
           {children}
         </div>
-        <div className="mt-5 flex shrink-0 justify-end gap-3">
+        <div className="mt-6 flex shrink-0 justify-end gap-3">
           {variant === "unactionable" ? (
-            <AlertDialog.Close render={<Button>Close</Button>} />
+            <AlertDialog.Close render={<Button>{closeText ?? t("common.close")}</Button>} />
           ) : (
             <>
-              <AlertDialog.Close render={<Button>Cancel</Button>} />
+              <AlertDialog.Close render={<Button>{cancelText ?? t("common.cancel")}</Button>} />
               <AlertDialog.Close ref={closeRef} className="hidden" aria-hidden tabIndex={-1} />
               <Button
                 disabled={isDisabled}
                 type="submit"
                 variant={variant === "destructive" ? "danger" : "heavy"}
               >
-                Confirm
+                {confirmText ?? t("common.confirm")}
               </Button>
             </>
           )}
@@ -113,8 +129,9 @@ function DialogOverlay({ children }: { children: React.ReactNode }) {
       <AlertDialog.Backdrop
         className={cn(
           "fixed inset-0 z-20 h-screen w-screen",
-          "bg-mist-900/30 dark:bg-mist-950/60",
-          "transition-opacity duration-100",
+          "bg-mist-900/40 dark:bg-mist-950/70",
+          "backdrop-blur-[1px]",
+          "transition-opacity duration-200 ease-out",
         )}
       />
       <div

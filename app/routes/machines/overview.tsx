@@ -2,11 +2,11 @@ import { ChevronDown, ChevronUp, Info, X } from "lucide-react";
 import { useMemo, useState } from "react";
 import { useSearchParams } from "react-router";
 
-import Code from "~/components/code";
 import Input from "~/components/input";
 import Link from "~/components/link";
 import PageError from "~/components/page-error";
 import Tooltip from "~/components/tooltip";
+import { useTranslation } from "~/i18n/context";
 import {
   agentsContext,
   appConfigContext,
@@ -118,6 +118,7 @@ const ROUTE_MATCH: Record<string, (n: PopulatedNode) => boolean> = {
 };
 
 export default function Page({ loaderData }: Route.ComponentProps) {
+  const { t, isZh } = useTranslation();
   const [searchParams, setSearchParams] = useSearchParams();
   const [sortField, setSortField] = useState<SortField>("name");
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
@@ -242,11 +243,11 @@ export default function Page({ loaderData }: Route.ComponentProps) {
     <>
       <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex flex-col">
-          <h1 className="mb-2 text-2xl font-medium">Machines</h1>
+          <h1 className="mb-2 text-2xl font-medium">{t("machines.title")}</h1>
           <p>
-            Manage the devices connected to your Tailnet.{" "}
+            {t("machines.desc")}{" "}
             <Link external styled to="https://tailscale.com/kb/1372/manage-devices">
-              Learn more
+              {t("common.learnMore")}
             </Link>
           </p>
         </div>
@@ -260,11 +261,11 @@ export default function Page({ loaderData }: Route.ComponentProps) {
       <div className="mb-4 flex flex-wrap items-center gap-3">
         <div className="relative w-64">
           <Input
-            label="Search machines"
+            label={t("machines.searchPlaceholder")}
             labelHidden
             maxLength={100}
             onChange={setSearchQuery}
-            placeholder="Search by name or IP address..."
+            placeholder={t("machines.searchPlaceholder")}
             value={searchQuery}
           />
           {searchQuery && (
@@ -272,10 +273,11 @@ export default function Page({ loaderData }: Route.ComponentProps) {
               aria-label="Clear search"
               className={cn(
                 "absolute right-2 top-1/2 -translate-y-1/2",
-                "p-1 rounded-full",
+                "p-1 rounded-full cursor-pointer",
                 "text-mist-400 hover:text-mist-600",
                 "dark:text-mist-500 dark:hover:text-mist-300",
                 "hover:bg-mist-100 dark:hover:bg-mist-800",
+                "transition-all duration-150 ease-out active:scale-90",
               )}
               onClick={clearSearch}
               type="button"
@@ -287,8 +289,11 @@ export default function Page({ loaderData }: Route.ComponentProps) {
         <MachineFilters users={loaderData.users} populatedNodes={loaderData.populatedNodes} />
         <span className="ml-auto text-sm whitespace-nowrap text-mist-500">
           {searchQuery || hasActiveFilters
-            ? `Showing ${filteredAndSortedNodes.length} of ${loaderData.populatedNodes.length} machines`
-            : `${loaderData.populatedNodes.length} machines`}
+            ? t("machines.showingCount", {
+                count: filteredAndSortedNodes.length,
+                total: loaderData.populatedNodes.length,
+              })
+            : t("machines.totalCount", { total: loaderData.populatedNodes.length })}
         </span>
       </div>
       <div className="overflow-x-auto">
@@ -308,13 +313,14 @@ export default function Page({ loaderData }: Route.ComponentProps) {
                 <button
                   aria-label="Sort by name"
                   className={cn(
-                    "flex items-center gap-x-1 cursor-pointer",
+                    "flex items-center gap-x-1 cursor-pointer select-none",
+                    "transition-all duration-150 ease-out active:scale-95 active:duration-75",
                     "hover:text-mist-900 dark:hover:text-mist-100",
                   )}
                   onClick={() => handleSort("name")}
                   type="button"
                 >
-                  Name
+                  {t("machines.colName")}
                   {sortField === "name" &&
                     (sortDirection === "asc" ? (
                       <ChevronUp className="h-3 w-3" />
@@ -337,13 +343,14 @@ export default function Page({ loaderData }: Route.ComponentProps) {
                   <button
                     aria-label="Sort by IP address"
                     className={cn(
-                      "flex items-center gap-x-1 cursor-pointer uppercase text-xs font-bold",
+                      "flex items-center gap-x-1 cursor-pointer select-none uppercase text-xs font-bold",
+                      "transition-all duration-150 ease-out active:scale-95 active:duration-75",
                       "hover:text-mist-900 dark:hover:text-mist-100",
                     )}
                     onClick={() => handleSort("ip")}
                     type="button"
                   >
-                    Addresses
+                    {t("machines.colAddress")}
                     {sortField === "ip" &&
                       (sortDirection === "asc" ? (
                         <ChevronUp className="h-3 w-3" />
@@ -355,12 +362,9 @@ export default function Page({ loaderData }: Route.ComponentProps) {
                     <Tooltip
                       content={
                         <span className="font-normal">
-                          Since MagicDNS is enabled, you can access devices based on their name and
-                          also at{" "}
-                          <Code>
-                            [name].
-                            {loaderData.magic}
-                          </Code>
+                          {isZh
+                            ? `由于已启用 MagicDNS，您可以通过机器名直接访问设备，或通过 [name].${loaderData.magic} 访问`
+                            : `Since MagicDNS is enabled, you can access devices based on their name and also at [name].${loaderData.magic}`}
                         </span>
                       }
                     >
@@ -384,13 +388,14 @@ export default function Page({ loaderData }: Route.ComponentProps) {
                   <button
                     aria-label="Sort by version"
                     className={cn(
-                      "flex items-center gap-x-1 cursor-pointer",
+                      "flex items-center gap-x-1 cursor-pointer select-none",
+                      "transition-all duration-150 ease-out active:scale-95 active:duration-75",
                       "hover:text-mist-900 dark:hover:text-mist-100",
                     )}
                     onClick={() => handleSort("version")}
                     type="button"
                   >
-                    Version
+                    {t("machines.colVersion")}
                     {sortField === "version" &&
                       (sortDirection === "asc" ? (
                         <ChevronUp className="h-3 w-3" />
@@ -413,13 +418,14 @@ export default function Page({ loaderData }: Route.ComponentProps) {
                 <button
                   aria-label="Sort by last seen"
                   className={cn(
-                    "flex items-center gap-x-1 cursor-pointer",
+                    "flex items-center gap-x-1 cursor-pointer select-none",
+                    "transition-all duration-150 ease-out active:scale-95 active:duration-75",
                     "hover:text-mist-900 dark:hover:text-mist-100",
                   )}
                   onClick={() => handleSort("lastSeen")}
                   type="button"
                 >
-                  Last Seen
+                  {t("machines.colLastSeen")}
                   {sortField === "lastSeen" &&
                     (sortDirection === "asc" ? (
                       <ChevronUp className="h-3 w-3" />
@@ -445,7 +451,9 @@ export default function Page({ loaderData }: Route.ComponentProps) {
                   className="py-8 text-center text-mist-500"
                   colSpan={loaderData.agent !== undefined ? 6 : 5}
                 >
-                  No machines match the current filters
+                  {isZh
+                    ? "未找到符合当前筛选条件的机器设备"
+                    : "No machines match the current filters"}
                 </td>
               </tr>
             ) : (

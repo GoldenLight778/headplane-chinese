@@ -11,6 +11,7 @@ import Select from "~/components/select";
 import Switch from "~/components/switch";
 import Text from "~/components/text";
 import Title from "~/components/title";
+import { useTranslation } from "~/i18n/context";
 import type { User } from "~/types";
 import { getUserDisplayName } from "~/utils/user";
 
@@ -53,6 +54,7 @@ export default function AddAuthKey({
   currentHeadscaleUserId,
   currentSubject,
 }: AddAuthKeyProps) {
+  const { isZh } = useTranslation();
   const fetcher = useFetcher();
   const submittingRef = useRef(false);
   const [isOpen, setIsOpen] = useState(false);
@@ -104,14 +106,20 @@ export default function AddAuthKey({
       }}
     >
       <Button className="my-4" onClick={() => setIsOpen(true)}>
-        Create pre-auth key
+        {isZh ? "创建预授权密钥" : "Create pre-auth key"}
       </Button>
       {createdKey ? (
-        <DialogPanel variant="unactionable">
-          <Title>Pre-auth key created</Title>
-          <Text>Copy this key now. You will not be able to see the full key again.</Text>
+        <DialogPanel variant="unactionable" closeText={isZh ? "完成并关闭" : undefined}>
+          <Title>{isZh ? "预授权密钥已创建" : "Pre-auth key created"}</Title>
+          <Text>
+            {isZh
+              ? "请立即复制此密钥。关闭后您将无法再次查看完整密钥。"
+              : "Copy this key now. You will not be able to see the full key again."}
+          </Text>
           <CodeBlock className="mt-4">{createdKey}</CodeBlock>
-          <Text className="mt-4 text-sm">To register a device with this key:</Text>
+          <Text className="mt-4 text-sm">
+            {isZh ? "使用此密钥注册设备：" : "To register a device with this key:"}
+          </Text>
           <CodeBlock className="mt-1">
             {`tailscale up --login-server=${url} --authkey ${createdKey}`}
           </CodeBlock>
@@ -130,18 +138,23 @@ export default function AddAuthKey({
             fetcher.submit(form, { method: "POST" });
           }}
           isDisabled={fetcher.state !== "idle" || !canSubmit}
+          confirmText={isZh ? "生成密钥" : "Generate key"}
         >
-          <Title>Generate auth key</Title>
+          <Title>{isZh ? "生成预授权密钥" : "Generate auth key"}</Title>
 
           {!selfServiceOnly && (
             <div className="mb-4 flex items-center justify-between gap-2">
               <div>
-                <Text className="font-semibold">Tag-only key</Text>
-                <Text className="text-sm">Create a key owned by ACL tags instead of a user.</Text>
+                <Text className="font-semibold">{isZh ? "仅标签密钥" : "Tag-only key"}</Text>
+                <Text className="text-sm">
+                  {isZh
+                    ? "创建由 ACL 标签拥有而非用户拥有的密钥。"
+                    : "Create a key owned by ACL tags instead of a user."}
+                </Text>
               </div>
               <Switch
                 defaultChecked={tagOnly}
-                label="Tag-only"
+                label={isZh ? "仅标签" : "Tag-only"}
                 onCheckedChange={() => setTagOnly(!tagOnly)}
               />
             </div>
@@ -152,14 +165,18 @@ export default function AddAuthKey({
               className="mb-2"
               description={
                 selfServiceOnly
-                  ? "You can only create keys for your own user."
-                  : "Machines will belong to this user when they authenticate."
+                  ? isZh
+                    ? "您只能为自己的用户创建密钥。"
+                    : "You can only create keys for your own user."
+                  : isZh
+                    ? "设备通过身份验证后将属于此用户。"
+                    : "Machines will belong to this user when they authenticate."
               }
               disabled={selfServiceOnly}
               required
-              label="User"
+              label={isZh ? "所属用户" : "User"}
               onValueChange={(value) => setUserId(value)}
-              placeholder="Select a user"
+              placeholder={isZh ? "选择用户" : "Select a user"}
               value={userId}
               items={availableUsers.map((user) => ({
                 value: user.id,
@@ -170,47 +187,70 @@ export default function AddAuthKey({
 
           <Input
             className="mb-2"
-            description="Comma-separated tags (e.g. server, prod). The tag: prefix is added automatically."
+            description={
+              isZh
+                ? "以英文逗号分隔的标签（例如 server, prod）。tag: 前缀将自动添加。"
+                : "Comma-separated tags (e.g. server, prod). The tag: prefix is added automatically."
+            }
             required={tagOnly}
-            label="ACL Tags"
+            label={isZh ? "ACL 标签" : "ACL Tags"}
             onChange={(value) => setTags(value)}
             placeholder="server, prod"
             value={tags}
           />
           <NumberInput
             defaultValue={90}
-            description="Set this key to expire after a certain number of days."
+            description={
+              isZh
+                ? "设置此密钥在指定天数后过期失效。"
+                : "Set this key to expire after a certain number of days."
+            }
             required
-            label="Key Expiration"
+            label={isZh ? "密钥有效期 (天)" : "Key Expiration"}
             max={365_000}
             min={1}
             name="expiry"
           />
           <div className="mt-6 flex items-center justify-between gap-2">
             <div>
-              <Text className="font-semibold">Reusable</Text>
-              <Text className="text-sm">Use this key to authenticate more than one device.</Text>
+              <Text className="font-semibold">{isZh ? "可重复使用" : "Reusable"}</Text>
+              <Text className="text-sm">
+                {isZh
+                  ? "使用此密钥可以对多台设备进行身份验证。"
+                  : "Use this key to authenticate more than one device."}
+              </Text>
             </div>
             <Switch
               defaultChecked={reusable}
-              label="Reusable"
+              label={isZh ? "可重复使用" : "Reusable"}
               onCheckedChange={() => setReusable(!reusable)}
             />
           </div>
           <div className="mt-6 flex items-center justify-between gap-2">
             <div>
-              <Text className="font-semibold">Ephemeral</Text>
+              <Text className="font-semibold">{isZh ? "临时节点" : "Ephemeral"}</Text>
               <Text className="text-sm">
-                Devices authenticated with this key will be automatically removed once they go
-                offline.{" "}
-                <Link external styled to="https://tailscale.com/kb/1111/ephemeral-nodes">
-                  Learn more
-                </Link>
+                {isZh ? (
+                  <>
+                    使用此密钥认证的设备一旦离线将被自动移除。{" "}
+                    <Link external styled to="https://tailscale.com/kb/1111/ephemeral-nodes">
+                      了解更多
+                    </Link>
+                  </>
+                ) : (
+                  <>
+                    Devices authenticated with this key will be automatically removed once they go
+                    offline.{" "}
+                    <Link external styled to="https://tailscale.com/kb/1111/ephemeral-nodes">
+                      Learn more
+                    </Link>
+                  </>
+                )}
               </Text>
             </div>
             <Switch
               defaultChecked={ephemeral}
-              label="Ephemeral"
+              label={isZh ? "临时节点" : "Ephemeral"}
               onCheckedChange={() => setEphemeral(!ephemeral)}
             />
           </div>

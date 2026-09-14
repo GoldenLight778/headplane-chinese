@@ -45,9 +45,12 @@ const LazyDiffer = lazy(() =>
 export const loader = aclLoader;
 export const action = aclAction;
 
+import { useTranslation } from "~/i18n/context";
+
 export default function Page({
   loaderData: { access, writable, policy, users, tagUsage },
 }: Route.ComponentProps) {
+  const { t, isZh } = useTranslation();
   const [codePolicy, setCodePolicy] = useState(policy);
   const fetcher = useFetcher<typeof action>();
   const { revalidate } = useRevalidator();
@@ -77,10 +80,10 @@ export default function Page({
     }
 
     if (fetcher.data.success === true) {
-      toast("Updated policy");
+      toast(isZh ? "策略已更新保存" : "Updated policy");
       revalidate();
     }
-  }, [fetcher.data]);
+  }, [fetcher.data, isZh]);
 
   // The structured editors round-trip through the policy text, so the file
   // editor, the diff view and Save all work off one source of truth.
@@ -92,9 +95,21 @@ export default function Page({
     if (!parsed.ok) {
       return (
         <div className="p-4">
-          <Notice title="Policy cannot be edited visually" variant="error">
-            The policy could not be parsed ({parsed.error}). Fix it in the <Code>Edit file</Code>{" "}
-            tab and the visual editor will come back.
+          <Notice
+            title={isZh ? "无法可视化编辑策略" : "Policy cannot be edited visually"}
+            variant="error"
+          >
+            {isZh ? (
+              <>
+                策略解析失败 ({parsed.error})。请在 <Code>编辑策略文件</Code>{" "}
+                选项卡中修复，修复后将重新恢复可视化编辑器。
+              </>
+            ) : (
+              <>
+                The policy could not be parsed ({parsed.error}). Fix it in the{" "}
+                <Code>Edit file</Code> tab and the visual editor will come back.
+              </>
+            )}
           </Notice>
         </div>
       );
@@ -103,9 +118,10 @@ export default function Page({
     return (
       <div className="flex flex-col gap-4 p-4">
         {parsed.hasComments ? (
-          <Notice title="Comments will be removed" variant="warning">
-            This policy contains comments. Saving a change made in the visual editor rewrites the
-            policy and drops them.
+          <Notice title={isZh ? "注释将被移除" : "Comments will be removed"} variant="warning">
+            {isZh
+              ? "当前策略包含注释。在可视化编辑器中保存更改将重写策略并丢失这些注释。"
+              : "This policy contains comments. Saving a change made in the visual editor rewrites the policy and drops them."}
           </Notice>
         ) : null}
         {render(parsed.policy)}
@@ -116,35 +132,67 @@ export default function Page({
   return (
     <div>
       {!access ? (
-        <Notice title="ACL Policy restricted" variant="warning">
-          You do not have the necessary permissions to edit the Access Control List policy. Please
-          contact your administrator to request access or to make changes to the ACL policy.
+        <Notice title={isZh ? "ACL 策略访问受限" : "ACL Policy restricted"} variant="warning">
+          {isZh
+            ? "您没有编辑访问控制列表 (ACL) 策略的权限。请联系管理员申请权限或修改策略。"
+            : "You do not have the necessary permissions to edit the Access Control List policy. Please contact your administrator to request access or to make changes to the ACL policy."}
         </Notice>
       ) : !writable ? (
-        <Notice title="Read-only ACL Policy" variant="error">
-          The ACL policy mode is most likely set to <Code>file</Code> in your Headscale
-          configuration. This means that the ACL file cannot be edited through the web interface. In
-          order to resolve this, you'll need to set <Code>policy.mode</Code> to{" "}
-          <Code>database</Code> in your Headscale configuration.
+        <Notice title={isZh ? "只读 ACL 策略" : "Read-only ACL Policy"} variant="error">
+          {isZh ? (
+            <>
+              您的 Headscale 配置中 ACL 策略模式很可能设置为 <Code>file</Code>。这意味着无法通过 Web
+              界面编辑 ACL 文件。若要解决此问题，请在 Headscale 配置中将 <Code>policy.mode</Code>{" "}
+              设置为 <Code>database</Code>。
+            </>
+          ) : (
+            <>
+              The ACL policy mode is most likely set to <Code>file</Code> in your Headscale
+              configuration. This means that the ACL file cannot be edited through the web
+              interface. In order to resolve this, you'll need to set <Code>policy.mode</Code> to{" "}
+              <Code>database</Code> in your Headscale configuration.
+            </>
+          )}
         </Notice>
       ) : undefined}
-      <h1 className="mb-4 text-2xl font-medium">Access Control List (ACL)</h1>
+      <h1 className="mb-4 text-2xl font-medium">{t("acls.title")}</h1>
       <p className="mb-4 max-w-prose">
-        The ACL file is used to define the access control rules for your network. You can find more
-        information about the ACL file in the{" "}
-        <Link external styled to="https://tailscale.com/kb/1018/acls">
-          Tailscale ACL guide
-        </Link>{" "}
-        and the{" "}
-        <Link external styled to="https://headscale.net/stable/ref/acls/">
-          Headscale docs
-        </Link>
-        .
+        {isZh ? (
+          <>
+            ACL 文件用于定义您网络中设备之间的访问控制规则。您可以在{" "}
+            <Link external styled to="https://tailscale.com/kb/1018/acls">
+              Tailscale ACL 指南
+            </Link>{" "}
+            和{" "}
+            <Link external styled to="https://headscale.net/stable/ref/acls/">
+              Headscale 文档
+            </Link>{" "}
+            中了解更多信息。
+          </>
+        ) : (
+          <>
+            The ACL file is used to define the access control rules for your network. You can find
+            more information about the ACL file in the{" "}
+            <Link external styled to="https://tailscale.com/kb/1018/acls">
+              Tailscale ACL guide
+            </Link>{" "}
+            and the{" "}
+            <Link external styled to="https://headscale.net/stable/ref/acls/">
+              Headscale docs
+            </Link>
+            .
+          </>
+        )}
       </p>
       {fetcher.data?.error !== undefined ? (
-        <Notice title={fetcher.data.error.split(":")[0] ?? "Error"} variant="error">
+        <Notice
+          title={fetcher.data.error.split(":")[0] ?? (isZh ? "错误" : "Error")}
+          variant="error"
+        >
           {fetcher.data.error.split(":").slice(1).join(": ") ??
-            "An unknown error occurred while trying to update the ACL policy."}
+            (isZh
+              ? "尝试更新 ACL 策略时发生未知错误。"
+              : "An unknown error occurred while trying to update the ACL policy.")}
         </Notice>
       ) : undefined}
       <Tabs className="mb-4" label="ACL Editor" defaultValue="rules">
@@ -152,31 +200,31 @@ export default function Page({
           <TabsTab value="rules">
             <div className="flex items-center gap-2">
               <Shield className="p-1" />
-              <span>Rules</span>
+              <span>{t("acls.rules")}</span>
             </div>
           </TabsTab>
           <TabsTab value="tags">
             <div className="flex items-center gap-2">
               <TagsIcon className="p-1" />
-              <span>Tags &amp; Groups</span>
+              <span>{isZh ? "标签与用户组" : "Tags & Groups"}</span>
             </div>
           </TabsTab>
           <TabsTab value="edit">
             <div className="flex items-center gap-2">
               <Pencil className="p-1" />
-              <span>Edit file</span>
+              <span>{isZh ? "编辑策略文件" : "Edit file"}</span>
             </div>
           </TabsTab>
           <TabsTab value="diff">
             <div className="flex items-center gap-2">
               <Eye className="p-1" />
-              <span>Preview changes</span>
+              <span>{isZh ? "对比变更" : "Preview changes"}</span>
             </div>
           </TabsTab>
           <TabsTab value="preview">
             <div className="flex items-center gap-2">
               <FlaskConical className="p-1" />
-              <span>Preview rules</span>
+              <span>{isZh ? "规则预览" : "Preview rules"}</span>
             </div>
           </TabsTab>
         </TabsList>
@@ -215,9 +263,10 @@ export default function Page({
         <TabsPanel value="preview">
           <div className="flex flex-col items-center py-8">
             <Construction />
-            <p className="mt-4 w-1/2 text-center">
-              Previewing rules is not available yet. This feature is still in development and is
-              pretty complicated to implement. Hopefully I will be able to get to it soon.
+            <p className="mt-4 w-1/2 text-center text-sm text-mist-500">
+              {isZh
+                ? "规则预览功能尚在开发中，敬请期待。"
+                : "Previewing rules is not available yet. This feature is still in development."}
             </p>
           </div>
         </TabsPanel>
@@ -234,7 +283,7 @@ export default function Page({
         }}
         variant="heavy"
       >
-        Save
+        {t("acls.savePolicy")}
       </Button>
       <Button
         disabled={disabled || fetcher.state !== "idle" || codePolicy === policy}
@@ -243,7 +292,7 @@ export default function Page({
           setCodePolicy(policy);
         }}
       >
-        Discard Changes
+        {t("acls.discardChanges")}
       </Button>
     </div>
   );

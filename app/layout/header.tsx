@@ -3,6 +3,7 @@ import {
   CircleQuestionMark,
   CircleUser,
   Globe,
+  Languages,
   Lock,
   Monitor,
   Moon,
@@ -15,6 +16,8 @@ import { NavLink, unstable_useRoute as useRoute, useLocation, useSubmit } from "
 
 import Link from "~/components/link";
 import { Menu, MenuContent, MenuItem, MenuSeparator, MenuTrigger } from "~/components/menu";
+import { useTranslation } from "~/i18n/context";
+import type { Language } from "~/i18n/types";
 import logoBg from "~/logo/dark-bg.svg";
 import logoDark from "~/logo/dark.svg";
 import logoLight from "~/logo/light.svg";
@@ -40,25 +43,16 @@ export interface HeaderProps {
   configAvailable: boolean;
 }
 
-const tabs = [
-  { to: "/machines", icon: Server, label: "Machines", key: "machines" },
-  { to: "/users", icon: Users, label: "Users", key: "users" },
-  { to: "/acls", icon: Lock, label: "Access Control", key: "policy" },
-  { to: "/dns", icon: Globe, label: "DNS", key: "dns" },
-  { to: "/settings", icon: Settings, label: "Settings", key: "settings" },
+const tabConfigs = [
+  { to: "/machines", icon: Server, key: "machines" as const, labelKey: "header.machines" },
+  { to: "/users", icon: Users, key: "users" as const, labelKey: "header.users" },
+  { to: "/acls", icon: Lock, key: "policy" as const, labelKey: "header.acls" },
+  { to: "/dns", icon: Globe, key: "dns" as const, labelKey: "header.dns" },
+  { to: "/settings", icon: Settings, key: "settings" as const, labelKey: "header.settings" },
 ] as const;
 
-const colorSchemes = [
-  { value: "system", label: "System", icon: Monitor },
-  { value: "light", label: "Light", icon: Sun },
-  { value: "dark", label: "Dark", icon: Moon },
-] as const satisfies ReadonlyArray<{
-  value: ColorScheme;
-  label: string;
-  icon: typeof Monitor;
-}>;
-
 export default function Header({ user, access, configAvailable }: HeaderProps) {
+  const { t, language, setLanguage } = useTranslation();
   const submit = useSubmit();
   const showTabs = access.ui;
   const rootRoute = useRoute("root");
@@ -68,6 +62,17 @@ export default function Header({ user, access, configAvailable }: HeaderProps) {
   // following the redirect on the client.
   const location = useLocation();
   const returnTo = location.pathname + location.search;
+
+  const colorSchemes = [
+    { value: "system", label: t("header.colorSystem"), icon: Monitor },
+    { value: "light", label: t("header.colorLight"), icon: Sun },
+    { value: "dark", label: t("header.colorDark"), icon: Moon },
+  ] as const;
+
+  const languages: { value: Language; label: string }[] = [
+    { value: "zh", label: t("header.langZh") },
+    { value: "en", label: t("header.langEn") },
+  ];
 
   return (
     <header
@@ -88,7 +93,7 @@ export default function Header({ user, access, configAvailable }: HeaderProps) {
           </div>
           {showTabs && (
             <nav className="hidden items-center gap-x-2 overflow-x-auto p-1 text-sm font-medium md:flex">
-              {tabs.map((tab) => {
+              {tabConfigs.map((tab) => {
                 if (!access[tab.key]) return null;
                 if ((tab.key === "dns" || tab.key === "settings") && !configAvailable) return null;
 
@@ -98,11 +103,13 @@ export default function Header({ user, access, configAvailable }: HeaderProps) {
                     className={({ isActive }) =>
                       cn(
                         "px-3 py-1.5 flex items-center gap-x-1.5 rounded-md text-nowrap",
-                        "hover:bg-mist-300/50 dark:hover:bg-mist-800",
+                        "cursor-pointer select-none",
+                        "transition-all duration-150 ease-out active:scale-[0.97] active:duration-75",
+                        "hover:bg-mist-300/60 dark:hover:bg-mist-800",
                         "focus:outline-hidden focus:ring-2 focus:ring-indigo-500/40 focus:ring-offset-1",
                         "dark:focus:ring-indigo-400/40 dark:focus:ring-offset-mist-900",
                         isActive
-                          ? "bg-mist-300/70 dark:bg-mist-800 text-mist-900 dark:text-mist-50"
+                          ? "bg-mist-300/80 dark:bg-mist-800 text-mist-900 dark:text-mist-50 shadow-xs font-semibold"
                           : "text-mist-600 dark:text-mist-300",
                       )
                     }
@@ -110,38 +117,63 @@ export default function Header({ user, access, configAvailable }: HeaderProps) {
                     to={tab.to}
                   >
                     <tab.icon className="w-4" />
-                    {tab.label}
+                    {t(tab.labelKey)}
                   </NavLink>
                 );
               })}
             </nav>
           )}
         </div>
-        <div className="ml-auto grid shrink-0 grid-cols-2 gap-x-4">
+        <div className="ml-auto flex items-center gap-x-2 sm:gap-x-3">
+          {/* Language Switcher */}
           <Menu>
-            <MenuTrigger className="size-8 rounded-full p-1">
-              <CircleQuestionMark className="w-5" />
+            <MenuTrigger
+              aria-label={t("header.language")}
+              className="size-8 rounded-full p-1 text-mist-600 transition-colors hover:bg-mist-300/60 hover:text-mist-900 dark:text-mist-300 dark:hover:bg-mist-800 dark:hover:text-mist-100"
+            >
+              <Languages className="h-5 w-5" />
+            </MenuTrigger>
+            <MenuContent align="end">
+              {languages.map((item) => (
+                <MenuItem key={item.value} onClick={() => setLanguage(item.value)}>
+                  <div className="flex items-center gap-x-2">
+                    <span className="flex-1 font-medium">{item.label}</span>
+                    {language === item.value && (
+                      <Check className="size-4 text-indigo-600 dark:text-indigo-400" />
+                    )}
+                  </div>
+                </MenuItem>
+              ))}
+            </MenuContent>
+          </Menu>
+
+          {/* Help & Links */}
+          <Menu>
+            <MenuTrigger className="size-8 rounded-full p-1 text-mist-600 transition-colors hover:bg-mist-300/60 hover:text-mist-900 dark:text-mist-300 dark:hover:bg-mist-800 dark:hover:text-mist-100">
+              <CircleQuestionMark className="h-5 w-5" />
             </MenuTrigger>
             <MenuContent align="end">
               <MenuItem>
                 <Link external to="https://headplane.net">
-                  Docs
+                  {t("header.docs")}
                 </Link>
               </MenuItem>
               <MenuItem>
                 <Link external to="https://headscale.net">
-                  Headscale
+                  {t("header.headscale")}
                 </Link>
               </MenuItem>
               <MenuItem>
                 <Link external to="https://tailscale.com/download">
-                  Download
+                  {t("header.download")}
                 </Link>
               </MenuItem>
             </MenuContent>
           </Menu>
+
+          {/* User & Theme */}
           <Menu>
-            <MenuTrigger className="size-8 overflow-hidden rounded-full">
+            <MenuTrigger className="size-8 overflow-hidden rounded-full transition-all hover:ring-2 hover:ring-indigo-500/40">
               {user.picture ? (
                 <img alt={user.name} className="size-8" src={user.picture} />
               ) : (
@@ -153,7 +185,7 @@ export default function Header({ user, access, configAvailable }: HeaderProps) {
                 <div className="text-mist-900 dark:text-mist-50">
                   {user.subject === "api_key" ? (
                     <>
-                      <p className="font-bold">API Key</p>
+                      <p className="font-bold">{t("header.apiKey")}</p>
                       <p>{user.name}</p>
                     </>
                   ) : (
@@ -187,7 +219,7 @@ export default function Header({ user, access, configAvailable }: HeaderProps) {
                 variant="danger"
                 onClick={() => submit({}, { action: "/logout", method: "POST" })}
               >
-                Logout
+                {t("header.logout")}
               </MenuItem>
             </MenuContent>
           </Menu>
@@ -196,7 +228,7 @@ export default function Header({ user, access, configAvailable }: HeaderProps) {
       {showTabs && (
         <div className="block overflow-x-auto p-2 md:hidden">
           <nav className="flex items-center gap-x-2 text-sm font-medium">
-            {tabs.map((tab) => {
+            {tabConfigs.map((tab) => {
               if (!access[tab.key]) return null;
               if ((tab.key === "dns" || tab.key === "settings") && !configAvailable) return null;
 
@@ -206,19 +238,20 @@ export default function Header({ user, access, configAvailable }: HeaderProps) {
                   className={({ isActive }) =>
                     cn(
                       "relative px-3 py-1.5 flex items-center gap-x-1.5 rounded-md text-nowrap",
+                      "transition-all duration-150 ease-out active:scale-[0.97]",
                       "hover:bg-mist-300/50 dark:hover:bg-mist-800",
                       "focus:outline-hidden focus:ring-2 focus:ring-indigo-500/40 focus:ring-offset-1",
                       "dark:focus:ring-indigo-400/40 dark:focus:ring-offset-mist-900",
                       "text-mist-600 dark:text-mist-300",
                       isActive &&
-                        "text-mist-900 dark:text-mist-50 after:content-[''] after:absolute after:-bottom-2 after:inset-x-1 after:h-0.5 after:rounded-full after:bg-indigo-500",
+                        "text-mist-900 dark:text-mist-50 font-semibold after:content-[''] after:absolute after:-bottom-2 after:inset-x-1 after:h-0.5 after:rounded-full after:bg-indigo-500",
                     )
                   }
                   prefetch="intent"
                   to={tab.to}
                 >
                   <tab.icon className="w-4" />
-                  {tab.label}
+                  {t(tab.labelKey)}
                 </NavLink>
               );
             })}

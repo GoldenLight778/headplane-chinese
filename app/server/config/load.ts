@@ -28,18 +28,48 @@ import { ConfigError } from "./error";
  * @throws {Error} If there are validation errors in the final configuration
  */
 export async function loadConfig(configPathOverride?: string) {
-  const configPath =
-    configPathOverride != null
-      ? configPathOverride
-      : process.env.HEADPLANE_CONFIG_PATH != null
-        ? String(process.env.HEADPLANE_CONFIG_PATH)
-        : "/etc/headplane/config.yaml";
+  const candidatePaths = [
+    configPathOverride,
+    process.env.HEADPLANE_CONFIG_PATH,
+    "./config.dev.yaml",
+    "./config.yaml",
+    "./config.example.yaml",
+    "/etc/headplane/config.yaml",
+  ].filter((p): p is string => p != null && p.length > 0);
 
-  const fileConfig = await loadConfigFile(configPath);
+  let fileConfig: PartialHeadplaneConfig | undefined;
+  for (const candidate of candidatePaths) {
+    fileConfig = await loadConfigFile(candidate);
+    if (fileConfig) {
+      log.info("config", "Loaded configuration file from %s", candidate);
+      break;
+    }
+  }
+
   const envConfig = await loadConfigEnv();
 
   const combinedConfig = deepMerge(fileConfig, envConfig);
   await loadConfigKeyPaths(combinedConfig);
+
+  // Auto dev fallbacks
+  if (!combinedConfig.server) {
+    combinedConfig.server = {};
+  }
+  if (
+    !combinedConfig.server.cookie_secret ||
+    combinedConfig.server.cookie_secret.includes("change_me")
+  ) {
+    combinedConfig.server.cookie_secret = "dev-mock-cookie-secret-32-chars!";
+  }
+  if (combinedConfig.server.cookie_secure === undefined) {
+    combinedConfig.server.cookie_secure = false;
+  }
+  if (
+    process.platform === "win32" &&
+    (!combinedConfig.server.data_path || combinedConfig.server.data_path.startsWith("/var/"))
+  ) {
+    combinedConfig.server.data_path = "./data";
+  }
 
   const finalConfig = headplaneConfig(combinedConfig);
   if (finalConfig instanceof type.errors) {

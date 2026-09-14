@@ -9,6 +9,7 @@ import Link from "~/components/link";
 import TableList from "~/components/table-list";
 import Text from "~/components/text";
 import Title from "~/components/title";
+import { useTranslation } from "~/i18n/context";
 import type { Machine } from "~/types";
 import cn from "~/utils/cn";
 
@@ -22,6 +23,7 @@ interface TagsProps {
 }
 
 export default function Tags({ machine, isOpen, setIsOpen, existingTags, policyTags }: TagsProps) {
+  const { isZh } = useTranslation();
   const fetcher = useFetcher();
   const submittingRef = useRef(false);
   const [tags, setTags] = useState([...machine.tags]);
@@ -79,14 +81,29 @@ export default function Tags({ machine, isOpen, setIsOpen, existingTags, policyT
           fetcher.submit(form, { method: "POST" });
         }}
         isDisabled={fetcher.state !== "idle"}
+        confirmText={isZh ? "保存标签" : "Save tags"}
       >
-        <Title>Edit ACL tags for {machine.givenName}</Title>
+        <Title>
+          {isZh ? `编辑 ACL 标签: ${machine.givenName}` : `Edit ACL tags for ${machine.givenName}`}
+        </Title>
         <Text>
-          ACL tags can be used to reference machines in your ACL policies. See the{" "}
-          <Link external styled to="https://tailscale.com/kb/1068/acl-tags">
-            Tailscale documentation
-          </Link>{" "}
-          for more information.
+          {isZh ? (
+            <>
+              ACL 标签可用于在访问控制策略中引用机器。了解更多信息请参阅{" "}
+              <Link external styled to="https://tailscale.com/kb/1068/acl-tags">
+                Tailscale 文档
+              </Link>
+              。
+            </>
+          ) : (
+            <>
+              ACL tags can be used to reference machines in your ACL policies. See the{" "}
+              <Link external styled to="https://tailscale.com/kb/1068/acl-tags">
+                Tailscale documentation
+              </Link>{" "}
+              for more information.
+            </>
+          )}
         </Text>
         {error ? (
           <p className="mt-2 rounded-lg bg-red-50 p-3 text-sm text-red-700 dark:bg-red-900/20 dark:text-red-400">
@@ -97,7 +114,9 @@ export default function Tags({ machine, isOpen, setIsOpen, existingTags, policyT
           {tags.length === 0 ? (
             <TableList.Item className="flex flex-col items-center gap-2.5 py-4 opacity-70">
               <TagsIcon />
-              <p className="font-semibold">No tags are set on this machine</p>
+              <p className="font-semibold">
+                {isZh ? "此机器未设置任何标签" : "No tags are set on this machine"}
+              </p>
             </TableList.Item>
           ) : (
             tags.map((item) => (
@@ -124,13 +143,13 @@ export default function Tags({ machine, isOpen, setIsOpen, existingTags, policyT
 
         <div className="mt-2 flex items-center gap-2">
           <Input
-            aria-label="Add a tag"
+            aria-label={isZh ? "添加标签" : "Add a tag"}
             className="w-full"
             value={tag}
             onChange={setTag}
             invalid={tag.length > 0 && tagIsInvalid}
             placeholder="tag:example"
-            label="Tag"
+            label={isZh ? "标签" : "Tag"}
             labelHidden
           />
           <Button
@@ -162,19 +181,33 @@ export default function Tags({ machine, isOpen, setIsOpen, existingTags, policyT
         ) : null}
         {undeclaredTags.length > 0 ? (
           <p className="mt-2 rounded-lg bg-amber-50 p-3 text-sm text-amber-800 dark:bg-amber-900/20 dark:text-amber-300">
-            {undeclaredTags.join(", ")} {undeclaredTags.length === 1 ? "is" : "are"} not declared
-            under <code className="font-mono">tagOwners</code> in your policy, so no rule will match{" "}
-            {undeclaredTags.length === 1 ? "it" : "them"}. Declare{" "}
-            {undeclaredTags.length === 1 ? "it" : "them"} in{" "}
-            <Link styled to="/acls">
-              Access Control
-            </Link>
-            .
+            {isZh ? (
+              <>
+                {undeclaredTags.join(", ")} 未在策略的 <code className="font-mono">tagOwners</code>{" "}
+                中声明，因此不会匹配任何规则。请在{" "}
+                <Link styled to="/acls">
+                  访问控制
+                </Link>{" "}
+                中进行声明。
+              </>
+            ) : (
+              <>
+                {undeclaredTags.join(", ")} {undeclaredTags.length === 1 ? "is" : "are"} not
+                declared under <code className="font-mono">tagOwners</code> in your policy, so no
+                rule will match {undeclaredTags.length === 1 ? "it" : "them"}. Declare{" "}
+                {undeclaredTags.length === 1 ? "it" : "them"} in{" "}
+                <Link styled to="/acls">
+                  Access Control
+                </Link>
+                .
+              </>
+            )}
           </p>
         ) : null}
         <p className="mt-2 text-sm opacity-50">
-          Not seeing the tags you expect? Tags need to be defined in your access control policy
-          before they can be assigned to machines.
+          {isZh
+            ? "没看到预期的标签？标签必须先在访问控制策略中定义，然后才能分配给机器。"
+            : "Not seeing the tags you expect? Tags need to be defined in your access control policy before they can be assigned to machines."}
         </p>
       </DialogPanel>
     </Dialog>

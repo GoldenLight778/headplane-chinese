@@ -4,6 +4,7 @@ import Button from "~/components/button";
 import Code from "~/components/code";
 import Link from "~/components/link";
 import TableList from "~/components/table-list";
+import { useTranslation } from "~/i18n/context";
 import cn from "~/utils/cn";
 
 import AddRecord from "../dialogs/add-record";
@@ -14,21 +15,39 @@ interface Props {
 }
 
 export default function ManageRecords({ records, isDisabled }: Props) {
+  const { isZh } = useTranslation();
+
   return (
     <div className="flex w-full flex-col sm:w-2/3">
-      <h1 className="mb-4 text-2xl font-medium">DNS Records</h1>
+      <h1 className="mb-4 text-2xl font-medium">
+        {isZh ? "自定义 DNS 记录 (DNS Records)" : "DNS Records"}
+      </h1>
       <p>
-        Headscale supports adding custom DNS records to your Tailnet. As of now, only <Code>A</Code>{" "}
-        and <Code>AAAA</Code> records are supported.{" "}
-        <Link external styled to="https://headscale.net/stable/ref/dns">
-          Learn More
-        </Link>
+        {isZh ? (
+          <>
+            Headscale 支持向 Tailnet 添加自定义 DNS 记录。目前仅支持 <Code>A</Code> 和{" "}
+            <Code>AAAA</Code> 记录。{" "}
+            <Link external styled to="https://headscale.net/stable/ref/dns">
+              了解更多
+            </Link>
+          </>
+        ) : (
+          <>
+            Headscale supports adding custom DNS records to your Tailnet. As of now, only{" "}
+            <Code>A</Code> and <Code>AAAA</Code> records are supported.{" "}
+            <Link external styled to="https://headscale.net/stable/ref/dns">
+              Learn More
+            </Link>
+          </>
+        )}
       </p>
       <div className="mt-4">
         <TableList className="mb-8">
           {records.length === 0 ? (
             <TableList.Item>
-              <p className="mx-auto opacity-50">No DNS records found</p>
+              <p className="mx-auto opacity-50">
+                {isZh ? "未找到任何 DNS 记录" : "No DNS records found"}
+              </p>
             </TableList.Item>
           ) : (
             records.map((record) => (
@@ -58,7 +77,7 @@ export default function ManageRecords({ records, isDisabled }: Props) {
                     disabled={isDisabled}
                     type="submit"
                   >
-                    Remove
+                    {isZh ? "移除" : "Remove"}
                   </Button>
                 </Form>
               </TableList.Item>

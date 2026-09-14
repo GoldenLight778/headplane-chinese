@@ -1,5 +1,10 @@
 # Next
 
+## Changes
+
+- **Added full Simplified Chinese (zh) localization and runtime language switching.** Headplane now defaults to Chinese with an instant toggle to English from both the main navigation header and the login page. Language preferences are stored in cookies (`headplane_lang`) and parsed server-side to prevent UI flashing.
+- **Enhanced UI micro-interactions and button feedback.** Buttons, menu items, tabs, dialogs, and toggle switches now feature tactile spring micro-interactions (`active:scale-[0.97]`, smooth easing, improved cursor states, and subtle shadows) to eliminate stiff and rigid click feedback.
+
 # 0.7.1 (August 27, 2026)
 
 ## Changes

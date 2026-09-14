@@ -32,6 +32,8 @@ interface Props {
   supportsDisablingKeyExpiry: boolean;
 }
 
+import { useTranslation } from "~/i18n/context";
+
 export default function MachineRow({
   node,
   users,
@@ -43,6 +45,7 @@ export default function MachineRow({
   supportsNodeOwnerChange,
   supportsDisablingKeyExpiry,
 }: Props) {
+  const { t, isZh } = useTranslation();
   const uiTags = useMemo(() => uiTagsForNode(node, isAgent), [node, isAgent]);
 
   const ipOptions = useMemo(() => {
@@ -54,20 +57,23 @@ export default function MachineRow({
   }, [magic, node.ipAddresses]);
 
   return (
-    <tr className="group hover:bg-mist-100 dark:hover:bg-mist-800" key={node.id}>
+    <tr
+      className="group transition-colors duration-150 hover:bg-mist-100/70 dark:hover:bg-mist-800/70"
+      key={node.id}
+    >
       <td className="py-2 pl-2 focus-within:ring-3">
         <Link className={cn("group/link h-full focus:outline-hidden")} to={`/machines/${node.id}`}>
           <p
             className={cn(
-              "font-semibold leading-snug",
-              "group-hover/link:text-blue-600",
-              "dark:group-hover/link:text-blue-400",
+              "font-semibold leading-snug transition-colors duration-150",
+              "group-hover/link:text-indigo-600",
+              "dark:group-hover/link:text-indigo-400",
             )}
           >
             {node.givenName}
           </p>
           <p className="text-sm opacity-50">
-            {node.user ? getUserDisplayName(node.user) : "Tag-owned"}
+            {node.user ? getUserDisplayName(node.user) : t("machines.tagOwned")}
           </p>
           <div className="mt-1.5 flex flex-wrap gap-1">
             {mapTagsToComponents(node, uiTags)}
@@ -81,7 +87,7 @@ export default function MachineRow({
         <div className="flex items-center gap-x-1">
           {node.ipAddresses[0]}
           <Menu>
-            <MenuTrigger className="rounded-full bg-transparent p-1 hover:bg-mist-100 dark:hover:bg-mist-800">
+            <MenuTrigger className="cursor-pointer rounded-full bg-transparent p-1 transition-all duration-150 ease-out hover:bg-mist-200/60 active:scale-90 dark:hover:bg-mist-800">
               <ChevronDown className="h-4 w-4" />
             </MenuTrigger>
             <MenuContent align="end">
@@ -90,7 +96,7 @@ export default function MachineRow({
                   key={ip}
                   onClick={async () => {
                     await navigator.clipboard.writeText(ip);
-                    toast("Copied IP address to clipboard");
+                    toast(t("common.copied"));
                   }}
                 >
                   <div
@@ -116,7 +122,7 @@ export default function MachineRow({
               </p>
             </>
           ) : (
-            <p className="text-sm opacity-50">Unknown</p>
+            <p className="text-sm opacity-50">{isZh ? "未知" : "Unknown"}</p>
           )}
         </td>
       ) : undefined}
@@ -129,12 +135,14 @@ export default function MachineRow({
               suppressHydrationWarning
             >
               {node.online && !node.expired
-                ? "Connected"
+                ? isZh
+                  ? "已连接"
+                  : "Connected"
                 : new Date(node.lastSeen).toLocaleString()}
             </p>
             {!(node.online && !node.expired) && (
               <p className="text-xs opacity-50" suppressHydrationWarning>
-                {formatTimeDelta(new Date(node.lastSeen))}
+                {formatTimeDelta(new Date(node.lastSeen), isZh)}
               </p>
             )}
           </div>

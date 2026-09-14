@@ -2,6 +2,7 @@ import { Eye, EyeOff } from "lucide-react";
 import { useState } from "react";
 
 import Link from "~/components/link";
+import { useTranslation } from "~/i18n/context";
 import cn from "~/utils/cn";
 
 export interface FooterProps {
@@ -11,6 +12,7 @@ export interface FooterProps {
 
 export default function Footer({ isDebug, baseUrl }: FooterProps) {
   const [urlVisible, setUrlVisible] = useState(false);
+  const { isZh } = useTranslation();
 
   return (
     <footer
@@ -22,11 +24,23 @@ export default function Footer({ isDebug, baseUrl }: FooterProps) {
     >
       <div className="container flex items-center justify-between py-2">
         <p className="text-xs">
-          Headplane is free and open-source. Please consider{" "}
-          <Link external styled to="https://tale.me/sponsor">
-            sponsoring
-          </Link>{" "}
-          to support development.
+          {isZh ? (
+            <>
+              Headplane 是开源自由软件。欢迎通过{" "}
+              <Link external styled to="https://tale.me/sponsor">
+                赞助
+              </Link>{" "}
+              支持开发维护。
+            </>
+          ) : (
+            <>
+              Headplane is free and open-source. Please consider{" "}
+              <Link external styled to="https://tale.me/sponsor">
+                sponsoring
+              </Link>{" "}
+              to support development.
+            </>
+          )}
         </p>
         <div className="flex items-center gap-2 text-xs">
           {isDebug && (
@@ -51,15 +65,16 @@ export default function Footer({ isDebug, baseUrl }: FooterProps) {
               type="button"
               aria-label={urlVisible ? "Hide server URL" : "Show server URL"}
               className={cn(
-                "ml-1 inline-flex align-middle rounded-xs p-0.5",
+                "ml-1 inline-flex align-middle rounded-xs p-0.5 cursor-pointer",
                 "text-mist-400 hover:text-mist-600",
                 "dark:text-mist-500 dark:hover:text-mist-300",
+                "transition-all duration-150 ease-out active:scale-90",
                 "focus:outline-hidden focus:ring-2 focus:ring-indigo-500/40 focus:ring-offset-1",
                 "dark:focus:ring-indigo-400/40 dark:focus:ring-offset-mist-900",
               )}
               onClick={() => setUrlVisible((v) => !v)}
             >
-              {urlVisible ? <EyeOff size={12} /> : <Eye size={12} />}
+              {urlVisible ? <EyeOff className="h-3.5 w-3.5" /> : <Eye className="h-3.5 w-3.5" />}
             </button>
           </p>
         </div>

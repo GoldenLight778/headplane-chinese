@@ -13,10 +13,12 @@ import ToastProvider from "~/utils/toast-provider";
 
 import type { Route } from "./+types/root";
 import { ErrorBanner } from "./components/error-banner";
+import { LanguageProvider } from "./i18n/context";
 
 import "@fontsource-variable/inter/opsz.css";
 import "./tailwind.css";
 import { getColorScheme } from "./utils/color-scheme";
+import { getLanguage } from "./utils/language";
 
 export const meta: MetaFunction = () => [
   { title: "Headplane" },
@@ -27,8 +29,11 @@ export const meta: MetaFunction = () => [
 ];
 
 export async function loader({ request }: Route.LoaderArgs) {
-  const colorScheme = await getColorScheme(request);
-  return { colorScheme };
+  const [colorScheme, language] = await Promise.all([
+    getColorScheme(request),
+    getLanguage(request),
+  ]);
+  return { colorScheme, language };
 }
 
 export function Layout({ children }: { readonly children: React.ReactNode }) {
@@ -39,30 +44,32 @@ export function Layout({ children }: { readonly children: React.ReactNode }) {
   // are not a part of the normal React tree.
   return (
     <LiveDataProvider>
-      <html
-        lang="en"
-        className={
-          loaderData?.colorScheme === "dark"
-            ? "dark"
-            : loaderData?.colorScheme === "light"
-              ? "light"
-              : ""
-        }
-      >
-        <head>
-          <meta charSet="utf-8" />
-          <meta content="width=device-width, initial-scale=1" name="viewport" />
-          <Meta />
-          <Links />
-          <link href={`${__PREFIX__}/favicon.ico`} rel="icon" />
-        </head>
-        <body className="w-full overflow-x-hidden overscroll-none dark:bg-mist-900 dark:text-mist-50">
-          {children}
-          <ToastProvider />
-          <ScrollRestoration />
-          <Scripts />
-        </body>
-      </html>
+      <LanguageProvider initialLanguage={loaderData?.language ?? "zh"}>
+        <html
+          lang={loaderData?.language ?? "zh"}
+          className={
+            loaderData?.colorScheme === "dark"
+              ? "dark"
+              : loaderData?.colorScheme === "light"
+                ? "light"
+                : ""
+          }
+        >
+          <head>
+            <meta charSet="utf-8" />
+            <meta content="width=device-width, initial-scale=1" name="viewport" />
+            <Meta />
+            <Links />
+            <link href={`${__PREFIX__}/favicon.ico`} rel="icon" />
+          </head>
+          <body className="w-full overflow-x-hidden overscroll-none dark:bg-mist-900 dark:text-mist-50">
+            {children}
+            <ToastProvider />
+            <ScrollRestoration />
+            <Scripts />
+          </body>
+        </html>
+      </LanguageProvider>
     </LiveDataProvider>
   );
 }

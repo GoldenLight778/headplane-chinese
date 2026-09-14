@@ -25,9 +25,10 @@ export const MenuTrigger = ({
   <BaseMenu.Trigger
     className={cn(
       "inline-flex items-center justify-center",
+      "cursor-pointer select-none transition-all duration-150 ease-out active:scale-95",
       "focus:outline-hidden focus:ring-2 focus:ring-indigo-500/40 focus:ring-offset-1",
       "dark:focus:ring-indigo-400/40 dark:focus:ring-offset-mist-900",
-      "disabled:opacity-50 disabled:cursor-not-allowed",
+      "disabled:opacity-50 disabled:cursor-not-allowed disabled:active:scale-100",
       className,
     )}
     disabled={disabled}
@@ -56,9 +57,10 @@ export const MenuContent = ({
         className={cn(
           "min-w-50 rounded-lg py-1",
           "bg-white dark:bg-mist-900",
-          "shadow-lg dark:shadow-none",
+          "shadow-overlay",
           "border border-mist-200 dark:border-mist-700",
           "focus:outline-hidden",
+          "transition-all duration-150 ease-out",
           className,
         )}
       >
@@ -81,11 +83,14 @@ export const MenuItem = ({
     className={cn(
       "py-2 px-3 mx-1 rounded-md",
       "select-none cursor-pointer",
+      "transition-colors duration-100 ease-out",
+      "active:scale-[0.98] active:duration-75 active:bg-mist-200/70 dark:active:bg-mist-700/70",
       "focus:outline-hidden",
       "text-mist-700 dark:text-mist-300",
-      "data-highlighted:bg-mist-100/50 dark:data-highlighted:bg-mist-800",
-      "data-disabled:text-mist-400 dark:data-disabled:text-mist-600 data-disabled:cursor-default",
-      variant === "danger" && "text-red-500 dark:text-red-400",
+      "data-highlighted:bg-mist-100/70 dark:data-highlighted:bg-mist-800",
+      "data-disabled:text-mist-400 dark:data-disabled:text-mist-600 data-disabled:cursor-default data-disabled:active:scale-100",
+      variant === "danger" &&
+        "text-red-500 dark:text-red-400 hover:text-red-600 dark:hover:text-red-300",
       className,
     )}
     disabled={disabled}

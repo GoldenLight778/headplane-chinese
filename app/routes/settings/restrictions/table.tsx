@@ -4,6 +4,7 @@ import { Form } from "react-router";
 
 import Button from "~/components/button";
 import TableList from "~/components/table-list";
+import { useTranslation } from "~/i18n/context";
 import cn from "~/utils/cn";
 
 interface RestrictionProps {
@@ -14,11 +15,27 @@ interface RestrictionProps {
 }
 
 export default function RestrictionTable({ children, type, values, isDisabled }: RestrictionProps) {
+  const { isZh } = useTranslation();
+
+  const title = isZh
+    ? type === "domain"
+      ? "允许的域名"
+      : type === "group"
+        ? "允许的用户组"
+        : "允许的用户"
+    : `Permitted ${type.charAt(0).toUpperCase() + type.slice(1)}s`;
+
+  const emptyText = isZh
+    ? type === "domain"
+      ? "所有域名均允许进行身份验证。"
+      : type === "group"
+        ? "所有用户组均允许进行身份验证。"
+        : "所有用户均允许进行身份验证。"
+    : `All ${type}s are permitted to authenticate.`;
+
   return (
     <div className="w-full sm:w-2/3">
-      <h2 className="mt-8 text-2xl font-medium">
-        Permitted {type.charAt(0).toUpperCase() + type.slice(1)}s
-      </h2>
+      <h2 className="mt-8 text-2xl font-medium">{title}</h2>
       <TableList className="my-4">
         {values.length > 0 ? (
           values.map((value) => (
@@ -40,7 +57,7 @@ export default function RestrictionTable({ children, type, values, isDisabled }:
                   disabled={isDisabled}
                   type="submit"
                 >
-                  Remove
+                  {isZh ? "移除" : "Remove"}
                 </Button>
               </Form>
             </TableList.Item>
@@ -48,7 +65,7 @@ export default function RestrictionTable({ children, type, values, isDisabled }:
         ) : (
           <TableList.Item className="flex flex-col items-center gap-2.5 py-4 opacity-70">
             {iconForType(type)}
-            <p className="text-center font-semibold">All {type}s are permitted to authenticate.</p>
+            <p className="text-center font-semibold">{emptyText}</p>
           </TableList.Item>
         )}
       </TableList>

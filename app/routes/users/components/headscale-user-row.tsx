@@ -2,6 +2,7 @@ import { CircleUser } from "lucide-react";
 
 import Chip from "~/components/chip";
 import StatusCircle from "~/components/status-circle";
+import { useTranslation } from "~/i18n/context";
 import cn from "~/utils/cn";
 
 import type { UnlinkedHeadscaleUser } from "../overview";
@@ -22,6 +23,7 @@ export default function HeadscaleUserRow({
   policyGroups,
   policyHasComments,
 }: HeadscaleUserRowProps) {
+  const { isZh } = useTranslation();
   const isOnline = user.machines.some((machine) => machine.online);
   const lastSeen = user.machines.reduce(
     (acc, machine) => Math.max(acc, new Date(machine.lastSeen).getTime()),
@@ -56,7 +58,7 @@ export default function HeadscaleUserRow({
       </td>
       <td className="py-2 pl-0.5">
         <p className="text-sm text-mist-600 dark:text-mist-300" suppressHydrationWarning>
-          {new Date(user.createdAt).toLocaleDateString()}
+          {new Date(user.createdAt).toLocaleDateString(isZh ? "zh-CN" : undefined)}
         </p>
       </td>
       <td className="py-2 pl-0.5">
@@ -66,11 +68,17 @@ export default function HeadscaleUserRow({
           >
             <StatusCircle className="h-4 w-4" isOnline={isOnline} />
             <p suppressHydrationWarning>
-              {isOnline ? "Connected" : new Date(lastSeen).toLocaleString()}
+              {isOnline
+                ? isZh
+                  ? "已连接"
+                  : "Connected"
+                : new Date(lastSeen).toLocaleString(isZh ? "zh-CN" : undefined)}
             </p>
           </span>
         ) : (
-          <p className="text-sm text-mist-600 dark:text-mist-300">No machines</p>
+          <p className="text-sm text-mist-600 dark:text-mist-300">
+            {isZh ? "无机器" : "No machines"}
+          </p>
         )}
       </td>
       <td className="py-2 pr-0.5">

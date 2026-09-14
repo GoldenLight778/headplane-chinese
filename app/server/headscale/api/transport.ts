@@ -18,6 +18,7 @@ import log from "~/utils/log";
 
 import { undiciToFriendlyError } from "./error";
 import { type HeadscaleAPIError, isApiError } from "./error-client";
+import { mockStore } from "./mock";
 
 export interface TransportRequest {
   method: "GET" | "POST" | "PUT" | "DELETE" | "PATCH";
@@ -84,7 +85,12 @@ export async function createTransport(opts: TransportOptions): Promise<Transport
   }
 
   return {
-    async request<T>({ method, path, apiKey, body, query }: TransportRequest): Promise<T> {
+    async request<T>(req: TransportRequest): Promise<T> {
+      const { method, path, apiKey, body, query } = req;
+      if (mockStore.isMockEnabled(apiKey)) {
+        return mockStore.handleRequest(req) as T;
+      }
+
       let url = `/api/${path}`;
       const options: Partial<Dispatcher.RequestOptions> & { method: string } = {
         method,
@@ -106,63 +112,89 @@ export async function createTransport(opts: TransportOptions): Promise<Transport
         options.headers = { ...options.headers, "Content-Type": "application/json" };
       }
 
-      const res = await rawRequest(url, options);
-      if (res.statusCode >= 400) {
-        log.debug("api", "%s %s failed with status %d", method, path, res.statusCode);
-        const rawData = await res.body.text();
-        const jsonData = (() => {
-          try {
-            return JSON.parse(rawData) as Record<string, unknown>;
-          } catch {
-            return null;
-          }
-        })();
+      try {
+        const res = await rawRequest(url, options);
+        if (res.statusCode >= 400) {
+          log.debug("api", "%s %s failed with status %d", method, path, res.statusCode);
+          const rawData = await res.body.text();
+          const jsonData = (() => {
+            try {
+              return JSON.parse(rawData) as Record<string, unknown>;
+            } catch {
+              return null;
+            }
+          })();
 
-        throw data(
-          {
-            requestUrl: `${method} ${path}`,
-            statusCode: res.statusCode,
-            rawData,
-            data: jsonData,
-          } satisfies HeadscaleAPIError,
-          { status: 502, statusText: "Bad Gateway" },
-        );
+          throw data(
+            {
+              requestUrl: `${method} ${path}`,
+              statusCode: res.statusCode,
+              rawData,
+              data: jsonData,
+            } satisfies HeadscaleAPIError,
+            { status: 502, statusText: "Bad Gateway" },
+          );
+        }
+
+        return res.body.json() as Promise<T>;
+      } catch (error) {
+        if (process.env.NODE_ENV !== "production" || process.env.HEADPLANE_DEV_MOCK === "true") {
+          log.debug("api", "Transport request to %s failed, falling back to mock: %s", path, error);
+          return mockStore.handleRequest(req) as T;
+        }
+        throw error;
       }
-
-      return res.body.json() as Promise<T>;
     },
 
     async getPublic<T>(path: `/${string}`): Promise<T> {
-      const res = await rawRequest(path, { method: "GET" });
-      if (res.statusCode >= 400) {
-        const rawData = await res.body.text();
-        const jsonData = (() => {
-          try {
-            return JSON.parse(rawData) as Record<string, unknown>;
-          } catch {
-            return null;
-          }
-        })();
-        throw data(
-          {
-            requestUrl: `GET ${path}`,
-            statusCode: res.statusCode,
-            rawData,
-            data: jsonData,
-          } satisfies HeadscaleAPIError,
-          { status: 502, statusText: "Bad Gateway" },
-        );
+      if (mockStore.isMockEnabled()) {
+        return mockStore.handlePublic(path) as T;
       }
-      return res.body.json() as Promise<T>;
+
+      try {
+        const res = await rawRequest(path, { method: "GET" });
+        if (res.statusCode >= 400) {
+          const rawData = await res.body.text();
+          const jsonData = (() => {
+            try {
+              return JSON.parse(rawData) as Record<string, unknown>;
+            } catch {
+              return null;
+            }
+          })();
+          throw data(
+            {
+              requestUrl: `GET ${path}`,
+              statusCode: res.statusCode,
+              rawData,
+              data: jsonData,
+            } satisfies HeadscaleAPIError,
+            { status: 502, statusText: "Bad Gateway" },
+          );
+        }
+        return res.body.json() as Promise<T>;
+      } catch (error) {
+        if (process.env.NODE_ENV !== "production" || process.env.HEADPLANE_DEV_MOCK === "true") {
+          return mockStore.handlePublic(path) as T;
+        }
+        throw error;
+      }
     },
 
     async health() {
+      if (mockStore.isMockEnabled()) {
+        return true;
+      }
+
       try {
         const res = await rawRequest("/health", { method: "GET" });
         // Drain the body so the connection can be reused.
         await res.body.dump();
         return res.statusCode === 200;
       } catch (error) {
+        if (process.env.NODE_ENV !== "production" || process.env.HEADPLANE_DEV_MOCK === "true") {
+          return true;
+        }
         if (isApiError(error)) {
           log.debug("api", "Health check failed: %d", error.statusCode);
         }

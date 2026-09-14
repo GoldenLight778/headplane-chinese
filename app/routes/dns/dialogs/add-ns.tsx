@@ -10,6 +10,7 @@ import Text from "~/components/text";
 import Title from "~/components/title";
 import Tooltip from "~/components/tooltip";
 import { useForm } from "~/hooks/use-form";
+import { useTranslation } from "~/i18n/context";
 import cn from "~/utils/cn";
 
 const nsSchema = type({
@@ -22,6 +23,7 @@ interface Props {
 }
 
 export default function AddNameserver({ nameservers }: Props) {
+  const { isZh } = useTranslation();
   const form = useForm({
     schema: nsSchema,
     defaultValues: { split_name: "global" },
@@ -36,7 +38,7 @@ export default function AddNameserver({ nameservers }: Props) {
         : Object.values(nameservers).some((nsList) => nsList.includes(ns));
 
       if (isDuplicate) {
-        return { ns: "This nameserver already exists." };
+        return { ns: isZh ? "该域名服务器已存在。" : "This nameserver already exists." };
       }
 
       return undefined;
@@ -46,33 +48,47 @@ export default function AddNameserver({ nameservers }: Props) {
 
   return (
     <Dialog>
-      <Button>Add nameserver</Button>
-      <DialogPanel>
-        <Title className="mb-4">Add nameserver</Title>
+      <Button>{isZh ? "添加域名服务器" : "Add nameserver"}</Button>
+      <DialogPanel confirmText={isZh ? "添加服务器" : "Add nameserver"}>
+        <Title className="mb-4">{isZh ? "添加域名服务器" : "Add nameserver"}</Title>
         <input name="action_id" type="hidden" value="add_ns" />
         <Input
           {...form.field("ns")}
-          description="Use this IPv4 or IPv6 address to resolve names."
+          description={
+            isZh
+              ? "使用此 IPv4 或 IPv6 地址解析域名。"
+              : "Use this IPv4 or IPv6 address to resolve names."
+          }
           required
-          label="Nameserver"
+          label={isZh ? "域名服务器" : "Nameserver"}
           placeholder="1.2.3.4"
         />
         <div className="mt-8 flex items-center justify-between">
           <div className="block">
             <div className="inline-flex items-center gap-2">
-              <Text className="font-semibold">Restrict to domain</Text>
-              <Tooltip content="Only clients that support split DNS (Tailscale v1.8 or later for most platforms) will use this nameserver. Older clients will ignore it.">
+              <Text className="font-semibold">{isZh ? "限制特定域名" : "Restrict to domain"}</Text>
+              <Tooltip
+                content={
+                  isZh
+                    ? "仅支持分流 DNS 的客户端（大多数平台为 Tailscale v1.8 或更高版本）会使用此域名服务器，较旧的客户端将忽略它。"
+                    : "Only clients that support split DNS (Tailscale v1.8 or later for most platforms) will use this nameserver. Older clients will ignore it."
+                }
+              >
                 <Chip
                   className={cn("inline-flex items-center")}
                   leftIcon={<Split className="mr-0.5 h-3 w-3" />}
-                  text="Split DNS"
+                  text={isZh ? "分流 DNS (Split DNS)" : "Split DNS"}
                 />
               </Tooltip>
             </div>
-            <Text className="text-sm">This nameserver will only be used for some domains.</Text>
+            <Text className="text-sm">
+              {isZh
+                ? "此域名服务器将仅用于部分特定域名。"
+                : "This nameserver will only be used for some domains."}
+            </Text>
           </div>
           <Switch
-            label="Split DNS"
+            label={isZh ? "分流 DNS" : "Split DNS"}
             onCheckedChange={(checked) => {
               form.setValue("split_name", checked ? "" : "global");
             }}
@@ -80,16 +96,17 @@ export default function AddNameserver({ nameservers }: Props) {
         </div>
         {split ? (
           <>
-            <Text className="mt-8 font-semibold">Domain</Text>
+            <Text className="mt-8 font-semibold">{isZh ? "域名后缀" : "Domain"}</Text>
             <Input
               {...form.field("split_name")}
               required
-              label="Domain"
+              label={isZh ? "域名后缀" : "Domain"}
               placeholder="example.com"
             />
             <Text className="text-sm">
-              Only single-label or fully-qualified queries matching this suffix should use the
-              nameserver.
+              {isZh
+                ? "只有匹配此后缀的单标签或完全限定查询才会使用该域名服务器。"
+                : "Only single-label or fully-qualified queries matching this suffix should use the nameserver."}
             </Text>
           </>
         ) : (

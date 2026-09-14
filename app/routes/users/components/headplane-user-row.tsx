@@ -2,6 +2,7 @@ import { CircleUser } from "lucide-react";
 
 import Chip from "~/components/chip";
 import StatusCircle from "~/components/status-circle";
+import { useTranslation } from "~/i18n/context";
 import type { Role } from "~/server/web/roles";
 import cn from "~/utils/cn";
 
@@ -27,6 +28,7 @@ export default function HeadplaneUserRow({
   policyGroups,
   policyHasComments,
 }: HeadplaneUserRowProps) {
+  const { isZh } = useTranslation();
   const isOnline = user.machines.some((machine) => machine.online);
   const lastSeen = user.machines.reduce(
     (acc, machine) => Math.max(acc, new Date(machine.lastSeen).getTime()),
@@ -55,7 +57,9 @@ export default function HeadplaneUserRow({
             {displayUsername && <p className="text-sm opacity-50">{displayUsername}</p>}
             {displayEmail && <p className="text-sm opacity-50">{displayEmail}</p>}
             {!user.headscaleUserId && (
-              <p className="text-xs text-amber-600 dark:text-amber-400">Not linked</p>
+              <p className="text-xs text-amber-600 dark:text-amber-400">
+                {isZh ? "未关联" : "Not linked"}
+              </p>
             )}
             {user.groups.length > 0 && (
               <div className="mt-1 flex flex-wrap gap-1">
@@ -68,11 +72,15 @@ export default function HeadplaneUserRow({
         </div>
       </td>
       <td className="py-2 pl-0.5">
-        <p>{mapRoleToName(user.role)}</p>
+        <p>{mapRoleToName(user.role, isZh)}</p>
       </td>
       <td className="py-2 pl-0.5">
         <p className="text-sm text-mist-600 dark:text-mist-300" suppressHydrationWarning>
-          {user.lastLoginAt ? new Date(user.lastLoginAt).toLocaleDateString() : "Never"}
+          {user.lastLoginAt
+            ? new Date(user.lastLoginAt).toLocaleDateString(isZh ? "zh-CN" : undefined)
+            : isZh
+              ? "从未登录"
+              : "Never"}
         </p>
       </td>
       <td className="py-2 pl-0.5">
@@ -82,11 +90,17 @@ export default function HeadplaneUserRow({
           >
             <StatusCircle className="h-4 w-4" isOnline={isOnline} />
             <p suppressHydrationWarning>
-              {isOnline ? "Connected" : new Date(lastSeen).toLocaleString()}
+              {isOnline
+                ? isZh
+                  ? "已连接"
+                  : "Connected"
+                : new Date(lastSeen).toLocaleString(isZh ? "zh-CN" : undefined)}
             </p>
           </span>
         ) : (
-          <p className="text-sm text-mist-600 dark:text-mist-300">No machines</p>
+          <p className="text-sm text-mist-600 dark:text-mist-300">
+            {isZh ? "无机器" : "No machines"}
+          </p>
         )}
       </td>
       <td className="py-2 pr-0.5">
@@ -105,23 +119,23 @@ export default function HeadplaneUserRow({
   );
 }
 
-function mapRoleToName(role: Role) {
+function mapRoleToName(role: Role, isZh?: boolean) {
   switch (role) {
     case "owner":
-      return "Owner";
+      return isZh ? "所有者" : "Owner";
     case "admin":
-      return "Admin";
+      return isZh ? "管理员" : "Admin";
     case "network_admin":
-      return "Network Admin";
+      return isZh ? "网络管理员" : "Network Admin";
     case "it_admin":
-      return "IT Admin";
+      return isZh ? "IT 管理员" : "IT Admin";
     case "auditor":
-      return "Auditor";
+      return isZh ? "审计员" : "Auditor";
     case "viewer":
-      return "Viewer";
+      return isZh ? "观察者" : "Viewer";
     case "member":
-      return <p className="opacity-50">Member</p>;
+      return <p className="opacity-50">{isZh ? "成员" : "Member"}</p>;
     default:
-      return "Unknown";
+      return isZh ? "未知" : "Unknown";
   }
 }
